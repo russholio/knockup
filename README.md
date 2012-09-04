@@ -46,7 +46,7 @@ Knockup does not change anything about how you compose your views, just how you 
     // select John
     app.at(0).toggle();
 
-Your view may looks something like:
+Your view may look something like:
 
     <div data-bind="text: person().forename"></div>
     <ul data-bind="foreach: people">
