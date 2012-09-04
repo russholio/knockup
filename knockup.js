@@ -47,7 +47,7 @@
                 var found = false;
 
                 each(query, function(name, value) {
-                    if (typeof this[name] !== 'undefined' && this[name]() === value) {
+                    if (typeof this[name] === 'function' && this[name]() === value) {
                         found = true;
                     } else {
                         found = false;
