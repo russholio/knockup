@@ -66,7 +66,7 @@ Or do it the old fasioned way:
 
     ko.applyBindings(app);
 
-Whatever is easier for you.
+Whichever is easier for you.
 
 License
 -------
