@@ -44,7 +44,7 @@ Knockup does not change anything about how you compose your views, just how you 
     ]);
     
     // select John
-    app.at(0).toggle();
+    app.people().at(0).toggle();
 
 Your view may look something like:
 
