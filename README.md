@@ -1,5 +1,5 @@
-Knockup - ORM for KnockoutJS
-============================
+Knockup - ORM for Knockout
+==========================
 
 Knockup gives you a simple API for managing and relating JavaScript objects and handing them off to Knockout to use.
 
