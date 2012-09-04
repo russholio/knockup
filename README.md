@@ -37,8 +37,14 @@ Knockup does not change anything about how you compose your views, just how you 
     // bind to the view
     app.knockup();
     
-    // update the DOM
-    app.person().name('John Doe');
+    // add a people to the list
+    app.people([
+        { name: 'John Doe' },
+        { name: 'Jane Doe' }
+    ]);
+    
+    // select John
+    app.at(0).toggle();
 
 Your view may looks something like:
 
