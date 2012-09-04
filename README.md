@@ -8,7 +8,7 @@ Knockout is awesome. What it is designed to do, it does almost flawlessly. Howev
 Overview
 --------
 
-Knockup does not change anything about how you compose your views, just how you compose your models.
+Knockup does not change anything about how you compose your views, just how you compose your models, so it can be a drop in solution:
 
     // define your person model
     var person = ku.model({
