@@ -105,7 +105,7 @@
 
             // Apply computed properties.
             each(comp, function(name, comp) {
-                comp.owner  = self;
+                comp.owner = self;
                 self[name] = ko.computed(comp);
             });
 
