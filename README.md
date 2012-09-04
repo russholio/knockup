@@ -3,8 +3,6 @@ Knockup - ORM for KnockoutJS
 
 Knockup gives you a simple API for managing and relating JavaScript objects and handing them off to Knockout to use.
 
-Knockout is awesome. What it is designed to do, it does almost flawlessly. However, I've found that no matter what, I've yearned for some form of object management and automated observers. Thus, Knockup was born.
-
 Overview
 --------
 
