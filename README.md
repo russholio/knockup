@@ -53,7 +53,7 @@ Conventions
 Knockup makes a few design choices for you, but keeps things as simple as possible:
 
 1. You define your model by passing an object to the `ku.model` function and it returns a constructor for that model.
-2. Any value passed in become observable.
+2. Any property passed in become observable and its value is used as the default.
 3. Functions prefixed with `get` or `set` become computed observables. All other functions are just normal methods.
 4. If you pass in a model, that property will always contain an instance of that model.
 5. If you pass in a model collection, that property will always contain a collection of its corresponding models.
