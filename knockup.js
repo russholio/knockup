@@ -16,7 +16,7 @@
     ku.model = function(define) {
         var model = function(data) {
             var comp = {},
-            self = this;
+                self = this;
 
             // The observer is what is returned when the object is accessed.
             this.observer = ko.computed({
@@ -42,22 +42,6 @@
                 return this;
             };
 
-            // Returns whether or not the model matches the given hash.
-            this.is = function(query) {
-                var found = false;
-
-                each(query, function(name, value) {
-                    if (typeof this[name] === 'function' && this[name]() === value) {
-                        found = true;
-                    } else {
-                        found = false;
-                        return;
-                    }
-                });
-
-                return found;
-            };
-
             // Applies the model to the specified root element.
             // The root element defaults to the document object.
             this.knockup = function(to) {
@@ -68,7 +52,16 @@
             // Define the object structure.
             each(define, function(i, v) {
                 if (ku.isModel(v) || ku.isCollection(v)) {
-                    self[i] = new v().observer;
+                    // Create the new model.
+                    var obj = new v;
+
+                    // Set the property to the model observer.
+                    self[i] = obj.observer;
+
+                    // The model / collection should have a parent.
+                    obj.$parent = self;
+
+                    // Continue iteration.
                     return;
                 }
 
@@ -86,16 +79,25 @@
                     if (type) {
                         var name = i.substring(3, 4).toLowerCase() + i.substring(4);
 
+                        // We make sure that an object is registered so
+                        // that future getters or setters can be applied
+                        // to it.
                         if (typeof comp[name] === 'undefined') {
                             comp[name] = {};
                         }
 
+                        // Apply the function to the computed observer.
                         comp[name][type] = v;
 
                         return;
                     }
 
-                    self[i] = v;
+                    // Normal functions have to be wrapped in a function
+                    // that will apply the current context to it and pass
+                    // along the arguments.
+                    self[i] = function() {
+                        return v.apply(self, arguments);
+                    };
 
                     return;
                 }
@@ -105,7 +107,14 @@
 
             // Apply computed properties.
             each(comp, function(name, comp) {
+                // Automatically apply the current model.
                 comp.owner = self;
+
+                // If evaluation is not deferred, then some properties
+                // accessed within the observer may not be available.
+                comp.deferEvaluation = true;
+
+                // Apply the computed observer.
                 self[name] = ko.computed(comp);
             });
 
@@ -137,16 +146,38 @@
 
             // Returns the item at the specified index.
             this.at = function(index) {
-                if (!this.has(index)) {
-                    this.insert(index, {});
-                }
+                return this[index] || false;
+            };
 
-                return this[index];
+            // Returns the first item.
+            this.first = function() {
+                return this.at(0);
+            };
+
+            // Returns the last item.
+            this.last = function() {
+                return this.at(this.length - 1);
             };
 
             // Returns whether or not an item exists at the specified index.
             this.has = function(index) {
                 return typeof this[index] !== 'undefined';
+            };
+
+            // Removes the item at the specified index.
+            this.remove = function(at) {
+                var at   = typeof at === 'number' ? at : this.index(at);
+                    item = this.at(at);
+
+                if (item) {
+                    // Remove the item.
+                    Array.prototype.splice.call(this, at, 1);
+
+                    // Notify subscribers.
+                    this.observer.notifySubscribers();
+                }
+
+                return this;
             };
 
             // Prepends the specified model.
@@ -161,9 +192,33 @@
 
             // Inserts the model at the specified index.
             this.insert = function(at, item) {
-                Array.prototype.splice.call(this, at, 0, new model(item));
+                // Create the item to add from the passed in data.
+                item = ku.isModel(item) ? item : new model(item);
+
+                // Notify the model about its parent context.
+                item.$parent = this.$parent;
+
+                // Insert it into the collection.
+                Array.prototype.splice.call(this, at, 0, item);
+
+                // Notify anyone who cares about the update.
                 this.observer.notifySubscribers();
+
                 return this;
+            };
+
+            // Returns the index of the specified item.
+            this.index = function(item) {
+                var index = -1;
+
+                this.each(function(i, it) {
+                    if (it === item) {
+                        index = i;
+                        return;
+                    }
+                });
+
+                return index;
             };
 
             // Fills the set with the specified data.
@@ -187,28 +242,24 @@
 
             // Finds several items in the set.
             this.find = function(query, limit) {
-                var found = [];
+                var collection = new model.collection;
 
                 this.each(function(i, model) {
-                    if (model.is(query)) {
-                        found.push(model);
+                    if (query(i, model)) {
+                        collection.append(model);
                     }
 
-                    if (limit && found.length === limit) {
+                    if (limit && collection.length === limit) {
                         return;
                     }
                 });
 
-                return new ku.set(model, found);
+                return collection;
             };
 
             // Finds one item in the set.
             this.findOne = function(query) {
-                var set = this.find(query, 1);
-
-                if (set.count()) {
-                    return set.at(0);
-                }
+                return this.find(query, 1).first();
             };
 
             // Fill with the initial data.
@@ -219,18 +270,34 @@
     // Returns whether or not the speicfied function is a model constructor.
     var modelString = ku.model().toString();
     ku.isModel = function(fn) {
-        return fn.toString() === modelString;
+        return fnCompare(fn, modelString);
     };
 
     // Returns whether or not the speicfied function is a collection constructor.
     var collectionString = ku.collection().toString();
     ku.isCollection = function(fn) {
-        return fn.toString() === collectionString;
+        return fnCompare(fn, collectionString);
     };
 
+    // Compares the passed in function to the definition string.
+    function fnCompare(fn, str) {
+        if (!fn) {
+            return false;
+        }
+
+        if (typeof fn === 'object' && fn.constructor) {
+            fn = fn.constructor;
+        }
+
+        if (typeof fn === 'function') {
+            fn = fn.toString();
+        }
+
+        return fn === str;
+    }
+
     // Iterates over an array or hash.
-    function each(items, data, fn) {
-        var fn    = arguments.length === 2 ? data : fn;
+    function each(items, fn) {
         var items = items || [];
 
         if (typeof items === 'string') {
@@ -239,11 +306,11 @@
 
         if (typeof items.length === 'number') {
             for (var i = 0; i < items.length; i++) {
-                fn(i, items[i], data);
+                fn(i, items[i]);
             }
         } else {
             for (var i in items) {
-                fn(i, items[i], data);
+                fn(i, items[i]);
             }
         }
     };
