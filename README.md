@@ -74,6 +74,15 @@ Or do it the old fasioned way:
 
 Whichever is easier for you.
 
+Examples
+--------
+
+Currently, there is only one example that shows off most knockup / knockout features.
+
+1. [Notes](http://treshugart.github.com/knockup/examples/notes.html)
+
+I had to FORCE myself from doing a todo app!
+
 License
 -------
 
