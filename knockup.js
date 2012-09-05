@@ -29,6 +29,23 @@
                 owner: this
             });
 
+            // Defers the call to the specified function in the current context.
+            this.defer = function(fn) {
+                if (typeof fn === 'string') {
+                    fn = self[fn];
+                }
+
+                if (!fn) {
+                    return function() {};
+                }
+
+                var args = Array.prototype.slice.call(arguments, 1);
+
+                return function() {
+                    return fn.apply(self, args);
+                }
+            };
+
             // Fills the model with the specified values.
             this.fill = function(obj) {
                 // Update each value.
