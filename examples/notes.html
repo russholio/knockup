@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Notes</title>
+    <link rel="stylesheet" href="../css/bootstrap.css">
+    <style>
+      textarea {
+        width: 400px;
+        height: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Notes App</h1>
+      <p>Displays a list of composed notes. Waaaay more useful than a todo app!</p>
+
+      <h2>Notes</h2>
+      <p><a href="#" class="btn btn-small btn-primary" data-bind="click: create">New Note</a></p>
+      
+      <div class="row">
+        <div class="span3">
+          <ul class="nav nav-pills nav-stacked" data-bind="foreach: notes">
+            <li data-bind="css: { active: selected }">
+              <a href="#" data-bind="click: select">
+                <span data-bind="text: title"></span>
+                <span data-bind="if: summary">&mdash;</span>
+                <small><i data-bind="text: summary"></i></small>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ko if: note() -->
+      <div class="row">
+        <div class="span4">
+          <legend>
+            <span data-bind="text: note().title"></span>
+            <a href="#" class="btn btn-mini btn-danger" data-bind="click: note().remove">Delete</a>
+          </legend>
+          <textarea class="span4" data-bind="value: note().content"></textarea>
+        </div>
+      </div>
+      <!-- /ko -->
+    </div>
+    
+    <script src="../js/knockout.js"></script>
+    <script src="../js/knockup.js"></script>
+    <script>
+      var note = ku.model({
+        content: '',
+        getSelected: function() {
+          return this.$parent.note() === this;
+        },
+        getSummary: function() {
+          var split = this.content().split(/\n+/);
+          
+          if (typeof split[1] === 'undefined') {
+            return;
+          }
+          
+          var max = 20;
+          
+          return split[1].substring(0, max) + (split[1].length > max ? '...' : '');
+        },
+        getTitle: function() {
+          var num = this.$parent.notes().index(this) + 1;
+          return this.content().split(/\n+/)[0] || 'New Note' + (num > 1 ? ' ' + num : '');
+        },
+        select: function() {
+          this.$parent.note(this);
+        },
+        remove: function() {
+          this.$parent.notes().remove(this);
+          this.$parent.note(this.$parent.notes().last());
+        }
+      });
+
+      var app = ku.model({
+        note: false,
+        notes: note.collection,
+        create: function() {
+          this.notes().append().last().select();
+        }
+      });
+
+      new app().knockup();
+    </script>
+  </body>
+</html>
