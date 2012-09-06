@@ -13,10 +13,10 @@ Knockup does not change anything about how you compose your views, just how you 
         forename: '',
         surname: '',
         selected: false,
-        getName: function() {
+        readName: function() {
             return this.forename() + ' ' + this.surname();
         },
-        setName: function(name) {
+        writeName: function(name) {
             var names = name.split(' ');
             this.forename(names[0]);
             this.surname(names[1]);
@@ -27,15 +27,15 @@ Knockup does not change anything about how you compose your views, just how you 
     });
 
     // define the app model
-    var app = ku.model({
+    var view = ku.model({
         people: person.collection,
-        getPerson: function() {
+        readPerson: function() {
             return this.people().findOne({ selected: true });
         }
     });
     
     // bind to the view
-    app.knockup();
+    var app = view.knockup();
     
     // add a people to the list
     app.people([
@@ -63,16 +63,6 @@ Knockup makes a few design choices for you, but keeps things as simple as possib
 3. Functions prefixed with `get` or `set` become computed observables. All other functions are just normal instance methods.
 4. If you pass in a model, that property will always contain an instance of that model.
 5. If you pass in a model collection, that property will always contain a collection of its corresponding models.
-
-In order to apply your aggregate root (for you DDD peeps) to the view, you can either:
-
-    app.knockup()
-    
-Or do it the old fasioned way:
-
-    ko.applyBindings(app);
-
-Whichever is easier for you.
 
 Examples
 --------
