@@ -168,6 +168,19 @@
             // The observer is what is returned when the object is accessed.
             this.observer = generateObserver.call(this);
 
+            // Returns an array values for the specified model property.
+            this.aggregate = function(name) {
+                var arr = [];
+
+                this.each(function(k, v) {
+                    if (typeof v[name] === 'function') {
+                        arr.push(v[name]());
+                    }
+                });
+
+                return arr;
+            };
+
             // Returns the item at the specified index.
             this.at = function(index) {
                 return typeof this[index] === 'undefined' ? false : this[index];
@@ -259,7 +272,7 @@
             // Executes the callback for each item in the set.
             this.each = function(fn, data) {
                 for (var i = 0; i < this.length; i++) {
-                    fn(i, this[i]);
+                    fn.call(this, i, this[i]);
                 }
                 return this;
             };
@@ -279,7 +292,7 @@
                     }
 
                     // Append the item to the new collection.
-                    if (query(i, model)) {
+                    if (query.call(this, i, model)) {
                         collection.append(model);
                     }
 
