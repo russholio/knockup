@@ -11,23 +11,27 @@
     // Expose.
     window.ku = {};
 
+    // Set default configuration.
+    ku.config = {
+        isReader: function(name) {
+            return name.indexOf('read') === 0;
+        },
+        isWriter: function(name) {
+            return name.indexOf('write') === 0;
+        }
+    };
+
     // Creates a knockup model.
-    // The initial data in the model is specified by the "inherit" argument.
     ku.model = function(define) {
         var model = function(data) {
             var comp = {},
                 self = this;
 
+            // Initialize the configuration.
+            this.config = ku.config;
+
             // The observer is what is returned when the object is accessed.
-            this.observer = ko.computed({
-                read: function() {
-                    return this;
-                },
-                write: function(value) {
-                    this.fill(value);
-                },
-                owner: this
-            });
+            this.observer = generateObserver.call(this);
 
             // Defers the call to the specified function in the current context.
             this.defer = function(fn) {
@@ -86,9 +90,9 @@
                 if (typeof v === 'function') {
                     var type;
 
-                    if (i.indexOf('get') === 0) {
+                    if (self.config.isReader(i)) {
                         type = 'read';
-                    } else if (i.indexOf('set') === 0) {
+                    } else if (self.config.isWriter(i)) {
                         type = 'write';
                     }
 
@@ -142,6 +146,11 @@
         // The set constuctor for the current model.
         model.collection = ku.collection(model);
 
+        // Ability to statically bind.
+        model.knockup = function(to) {
+            return new model().knockup(to);
+        };
+
         return model;
     };
 
@@ -151,19 +160,11 @@
             Array.prototype.push.apply(this, []);
 
             // The observer is what is returned when the object is accessed.
-            this.observer = ko.computed({
-                read: function() {
-                    return this;
-                },
-                write: function(value) {
-                    this.fill(value);
-                },
-                owner: this
-            });
+            this.observer = generateObserver.call(this);
 
             // Returns the item at the specified index.
             this.at = function(index) {
-                return this[index] || false;
+                return typeof this[index] === 'undefined' ? false : this[index];
             };
 
             // Returns the first item.
@@ -183,10 +184,10 @@
 
             // Removes the item at the specified index.
             this.remove = function(at) {
-                var at   = typeof at === 'number' ? at : this.index(at);
-                    item = this.at(at);
+                var at = typeof at === 'number' ? at : this.index(at);
 
-                if (item) {
+                // Only attempt to remove if it exists.
+                if (this.has(at)) {
                     // Remove the item.
                     Array.prototype.splice.call(this, at, 1);
 
@@ -258,16 +259,27 @@
             };
 
             // Finds several items in the set.
-            this.find = function(query, limit) {
+            this.find = function(query, limit, page) {
                 var collection = new model.collection;
 
                 this.each(function(i, model) {
+                    // If limiting and pagin, make sure we are at the proper offset.
+                    if (limit && page) {
+                        var offset = (limit * page) - limit;
+
+                        if (offset < i) {
+                            return;
+                        }
+                    }
+
+                    // Append the item to the new collection.
                     if (query(i, model)) {
                         collection.append(model);
                     }
 
+                    // If the limit has been reached, break;
                     if (limit && collection.length === limit) {
-                        return;
+                        return false;
                     }
                 });
 
@@ -323,13 +335,30 @@
 
         if (typeof items.length === 'number') {
             for (var i = 0; i < items.length; i++) {
-                fn(i, items[i]);
+                if (fn(i, items[i]) === false) {
+                    return;
+                }
             }
         } else {
             for (var i in items) {
-                fn(i, items[i]);
+                if (fn(i, items[i]) === false) {
+                    return;
+                }
             }
         }
     };
+
+    // Generates an observer for the applied context.
+    function generateObserver() {
+        return ko.computed({
+            read: function() {
+                return this;
+            },
+            write: function(value) {
+                this.fill(value);
+            },
+            owner: this
+        });
+    }
 
 }();
