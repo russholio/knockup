@@ -18,6 +18,12 @@
         },
         isWriter: function(name) {
             return name.indexOf('write') === 0;
+        },
+        formatReader: function(name) {
+            return name.substring(4, 5).toLowerCase() + name.substring(5);
+        },
+        formatWriter: function(name) {
+            return name.substring(5, 6).toLowerCase() + name.substring(6);
         }
     };
 
@@ -88,18 +94,18 @@
 
                 // Handle functions, both get*, set* and normal.
                 if (typeof v === 'function') {
-                    var type;
+                    var name, type;
 
                     if (self.config.isReader(i)) {
+                        name = self.config.formatReader(i);
                         type = 'read';
                     } else if (self.config.isWriter(i)) {
+                        name = self.config.formatWriter(i);
                         type = 'write';
                     }
 
                     // If a "get" or "set" prefix was found, it is a computed observable.
                     if (type) {
-                        var name = i.substring(3, 4).toLowerCase() + i.substring(4);
-
                         // We make sure that an object is registered so
                         // that future getters or setters can be applied
                         // to it.
