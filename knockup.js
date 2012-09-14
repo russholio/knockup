@@ -10,7 +10,7 @@
 
     // Expose.
     window.ku = {};
-
+    
     // Set default configuration.
     ku.config = {
         isReader: function(name) {
@@ -32,25 +32,25 @@
         var model = function(data) {
             var comp = {},
                 self = this;
-
+            
             // Initialize the configuration.
             this.config = ku.config;
 
             // The observer is what is returned when the object is accessed.
             this.observer = generateObserver.call(this);
-
+            
             // Defers the call to the specified function in the current context.
             this.defer = function(fn) {
                 if (typeof fn === 'string') {
                     fn = self[fn];
                 }
-
+                
                 if (!fn) {
                     return function() {};
                 }
-
+                
                 var args = Array.prototype.slice.call(arguments, 1);
-
+                
                 return function() {
                     return fn.apply(self, args);
                 }
@@ -60,7 +60,9 @@
             this.fill = function(obj) {
                 // Update each value.
                 each(obj, function(name, value) {
-                    self[name](value);
+                    if (typeof self[name] === 'function') {
+                        self[name](value);
+                    }
                 });
 
                 // Tell everyone.
@@ -151,7 +153,7 @@
 
         // The set constuctor for the current model.
         model.collection = ku.collection(model);
-
+        
         // Ability to statically bind.
         model.knockup = function(to) {
             return new model().knockup(to);
@@ -167,17 +169,17 @@
 
             // The observer is what is returned when the object is accessed.
             this.observer = generateObserver.call(this);
-
+            
             // Returns an array values for the specified model property.
             this.aggregate = function(name) {
                 var arr = [];
-
+                
                 this.each(function(k, v) {
                     if (typeof v[name] === 'function') {
                         arr.push(v[name]());
                     }
                 });
-
+                
                 return arr;
             };
 
@@ -285,12 +287,12 @@
                     // If limiting and pagin, make sure we are at the proper offset.
                     if (limit && page) {
                         var offset = (limit * page) - limit;
-
+                        
                         if (offset < i) {
                             return;
                         }
                     }
-
+                    
                     // Append the item to the new collection.
                     if (query.call(this, i, model)) {
                         collection.append(model);
@@ -366,7 +368,7 @@
             }
         }
     };
-
+    
     // Generates an observer for the applied context.
     function generateObserver() {
         return ko.computed({
