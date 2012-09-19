@@ -1,15 +1,22 @@
 // Knockup, ORM for Knockout, v0.1.0
 // Copyright (c) Trey Shugart http://iamtres.com
 // License: MIT http://www.opensource.org/licenses/mit-license.php
-!function() {
-
+!function(factory) {
+    // Common / Node
+    if (typeof require === 'function' && typeof exports === 'object' && typeof module === 'object') {
+        factory(require('knockout'), module['exports'] || exports);
+    // AMD
+    } else if (typeof define === 'function' && define.amd) {
+        define(['knockout', 'exports'], factory);
+    // Global
+    } else {
+        factory(ko, window.ku = {});
+    }
+}(function(ko, ku) {
     // If knockout is not defined, let them know.
     if (typeof ko === 'undefined') {
         throw new Error('KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.');
     }
-
-    // Expose.
-    window.ku = {};
     
     // Set default configuration.
     ku.config = {
@@ -19,19 +26,28 @@
         isWriter: function(name) {
             return name.indexOf('write') === 0;
         },
-        formatReader: function(name) {
+        fromReader: function(name) {
             return name.substring(4, 5).toLowerCase() + name.substring(5);
         },
-        formatWriter: function(name) {
+        fromWriter: function(name) {
             return name.substring(5, 6).toLowerCase() + name.substring(6);
+        },
+        toReader: function(name) {
+            return 'read' + name.substring(0, 1).toUpperCase() + name.substring(1);
+        },
+        toWriter: function(name) {
+            return 'write' + name.substring(0, 1).toUpperCase() + name.substring(1);
         }
     };
 
     // Creates a knockup model.
     ku.model = function(define) {
         var model = function(data) {
-            var comp = {},
-                self = this;
+            var computed   = {},
+                properties = {},
+                relations  = {},
+                methods    = {},
+                self       = this;
             
             // Initialize the configuration.
             this.config = ku.config;
@@ -57,7 +73,11 @@
             };
 
             // Fills the model with the specified values.
-            this.fill = function(obj) {
+            this.import = function(obj) {
+                if (ku.isModel(obj)) {
+                    obj = obj.export();
+                }
+
                 // Update each value.
                 each(obj, function(name, value) {
                     if (typeof self[name] === 'function') {
@@ -68,6 +88,39 @@
                 // Tell everyone.
                 this.observer.notifySubscribers();
 
+                return this;
+            };
+
+            this.export = function() {
+                var out = {}
+
+                each(properties, function(i, v) {
+                    out[i] = self[i]();
+                });
+
+                each(computed, function(i, v) {
+                    out[i] = self[self.config.formatReader(i)]();
+                });
+
+                each(relations, function(i, v) {
+                    out[i] = self[i].export();
+                });
+
+                return out;
+            };
+
+            // Clones the object.
+            this.clone = function() {
+                var clone = new model(this.export());
+                clone.$parent = this.$parent;
+                return clone;
+            };
+
+            // Resest the model back to defaults.
+            this.reset = function() {
+                each(properties, function(i, v) {
+                    self[i](v);
+                });
                 return this;
             };
 
@@ -90,6 +143,9 @@
                     // The model / collection should have a parent.
                     obj.$parent = self;
 
+                    // Mark it as a relation.
+                    relations[i] = v;
+
                     // Continue iteration.
                     return;
                 }
@@ -99,10 +155,10 @@
                     var name, type;
 
                     if (self.config.isReader(i)) {
-                        name = self.config.formatReader(i);
+                        name = self.config.toReader(i);
                         type = 'read';
                     } else if (self.config.isWriter(i)) {
-                        name = self.config.formatWriter(i);
+                        name = self.config.toWriter(i);
                         type = 'write';
                     }
 
@@ -111,12 +167,12 @@
                         // We make sure that an object is registered so
                         // that future getters or setters can be applied
                         // to it.
-                        if (typeof comp[name] === 'undefined') {
-                            comp[name] = {};
+                        if (typeof computed[name] === 'undefined') {
+                            computed[name] = {};
                         }
 
                         // Apply the function to the computed observer.
-                        comp[name][type] = v;
+                        computed[name][type] = v;
 
                         return;
                     }
@@ -128,27 +184,39 @@
                         return v.apply(self, arguments);
                     };
 
+                    // Mark as a method.
+                    methods[i] = v;
+
                     return;
                 }
 
+                // Make observable.
                 self[i] = ko.observable(v);
+
+                // Mark as property.
+                properties[i] = v;
             });
 
             // Apply computed properties.
-            each(comp, function(name, comp) {
+            each(computed, function(name, computed) {
                 // Automatically apply the current model.
-                comp.owner = self;
+                computed.owner = self;
 
                 // If evaluation is not deferred, then some properties
                 // accessed within the observer may not be available.
-                comp.deferEvaluation = true;
+                computed.deferEvaluation = true;
 
                 // Apply the computed observer.
-                self[name] = ko.computed(comp);
+                self[name] = ko.computed(computed);
             });
 
             // Fill with instance values.
-            this.fill(data);
+            this.import(data);
+
+            // Initialize if given an initializer.
+            if (typeof this.init === 'function') {
+                this.init();
+            }
         };
 
         // The set constuctor for the current model.
@@ -231,7 +299,7 @@
 
             // Inserts the model at the specified index.
             this.insert = function(at, item) {
-                // Create the item to add from the passed in data.
+                // Ensure instance of specified model.
                 item = ku.isModel(item) ? item : new model(item);
 
                 // Notify the model about its parent context.
@@ -261,14 +329,28 @@
             };
 
             // Fills the set with the specified data.
-            this.fill = function(data) {
+            this.import = function(data) {
                 var self = this;
+
+                if (ku.isCollection(data)) {
+                    data = data.export();
+                }
 
                 each(data, function(i, model) {
                     self.append(model);
                 });
 
                 return this;
+            };
+
+            this.export = function() {
+                var out = [];
+
+                this.each(function(i, v) {
+                    out.push(v.export());
+                });
+
+                return out;
             };
 
             // Executes the callback for each item in the set.
@@ -283,6 +365,34 @@
             this.find = function(query, limit, page) {
                 var collection = new model.collection;
 
+                // Ensure proper object hierarchy.
+                collection.$parent = this.$parent;
+
+                // If a model is passed, convert to raw values.
+                if (ku.isModel(query)) {
+                    query = query.export();
+                }
+
+                // If an object is passed, create a query for it.
+                if (typeof query === 'object') {
+                    query = (function(query) {
+                        return function() {
+                            var self = this,
+                                ret  = true;
+
+                            each(query, function(k, v) {
+                                if (typeof self[k] === 'undefined' || self[k]() !== v) {
+                                    ret = false;
+                                    return false;
+                                }
+                            });
+
+                            return ret;
+                        }
+                    })(query);
+                }
+
+                // Query each item.
                 this.each(function(i, model) {
                     // If limiting and pagin, make sure we are at the proper offset.
                     if (limit && page) {
@@ -294,7 +404,7 @@
                     }
                     
                     // Append the item to the new collection.
-                    if (query.call(this, i, model)) {
+                    if (query.call(model, i)) {
                         collection.append(model);
                     }
 
@@ -304,6 +414,7 @@
                     }
                 });
 
+                // We return collections so that object hierarchy is maintained and methods can continue to be called.
                 return collection;
             };
 
@@ -313,7 +424,7 @@
             };
 
             // Fill with the initial data.
-            this.fill(data);
+            this.import(data);
         };
     };
 
@@ -376,10 +487,9 @@
                 return this;
             },
             write: function(value) {
-                this.fill(value);
+                this.import(value);
             },
             owner: this
         });
     }
-
-}();
+});
