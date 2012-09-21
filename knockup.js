@@ -155,10 +155,10 @@
                     var name, type;
 
                     if (self.config.isReader(i)) {
-                        name = self.config.toReader(i);
+                        name = self.config.fromReader(i);
                         type = 'read';
                     } else if (self.config.isWriter(i)) {
-                        name = self.config.toWriter(i);
+                        name = self.config.fromWriter(i);
                         type = 'write';
                     }
 
@@ -221,6 +221,20 @@
 
         // The set constuctor for the current model.
         model.collection = ku.collection(model);
+
+        // Save the model definition.
+        model.definition = define;
+
+        // So static members can be accessed from an instance.
+        model.prototype.$static = model;
+
+        // Ability to inherit another model's definition.
+        model.inherit = function(otherModel) {
+            each(otherModel.definition, function(i, v) {
+                define[i] = v;
+            });
+            return model;
+        };
         
         // Ability to statically bind.
         model.knockup = function(to) {
@@ -239,13 +253,24 @@
             this.observer = generateObserver.call(this);
             
             // Returns an array values for the specified model property.
-            this.aggregate = function(name) {
+            this.aggregate = function(joiner, fields) {
                 var arr = [];
+
+                if (!fields) {
+                    fields = [joiner];
+                    joiner = '';
+                }
                 
-                this.each(function(k, v) {
-                    if (typeof v[name] === 'function') {
-                        arr.push(v[name]());
-                    }
+                this.each(function(k, model) {
+                    var parts = [];
+
+                    each(fields, function(kk, field) {
+                        if (typeof model[field] === 'function') {
+                            parts.push(model[field]());
+                        }
+                    });
+
+                    arr.push(parts.join(joiner));
                 });
                 
                 return arr;
