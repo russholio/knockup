@@ -231,7 +231,7 @@
         model.definition = define;
 
         // So static members can be accessed from an instance.
-        model.prototype.$static = model;
+        model.prototype.self = model;
 
         // Ability to extend another model's definition.
         model.extend = function(otherModel) {
@@ -261,7 +261,7 @@
 
     // Contains a set of models and can be used like an array.
     ku.collection = function(model) {
-        return function(data) {
+        var collection = function(data) {
             Array.prototype.push.apply(this, []);
 
             // The observer is what is returned when the object is accessed.
@@ -403,7 +403,7 @@
 
             // Finds several items in the set.
             this.find = function(query, limit, page) {
-                var collection = new model.collection;
+                var collection = new this.self.model.collection;
 
                 // Ensure proper object hierarchy.
                 collection.$parent = this.$parent;
@@ -466,6 +466,16 @@
             // Fill with the initial data.
             this.import(data);
         };
+
+        // Model constructor.
+        collection.model = model;
+
+        // Instance members.
+        collection.prototype = {
+            self: collection
+        };
+
+        return collection;
     };
 
     // Returns whether or not the speicfied function is a model constructor.
