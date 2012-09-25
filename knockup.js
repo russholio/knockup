@@ -13,31 +13,39 @@
         factory(ko, window.ku = {});
     }
 }(function(ko, ku) {
-    // If knockout is not defined, let them know.
+    // Require KnockoutJS.
     if (typeof ko === 'undefined') {
         throw new Error('KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.');
     }
     
-    // Set default configuration.
-    ku.config = {
-        isReader: function(name) {
-            return name.indexOf('read') === 0;
-        },
-        isWriter: function(name) {
-            return name.indexOf('write') === 0;
-        },
-        fromReader: function(name) {
-            return name.substring(4, 5).toLowerCase() + name.substring(5);
-        },
-        fromWriter: function(name) {
-            return name.substring(5, 6).toLowerCase() + name.substring(6);
-        },
-        toReader: function(name) {
-            return 'read' + name.substring(0, 1).toUpperCase() + name.substring(1);
-        },
-        toWriter: function(name) {
-            return 'write' + name.substring(0, 1).toUpperCase() + name.substring(1);
-        }
+    // Returns whether or not the mmber is a getter.
+    ku.isGetter = function(name) {
+        return name.indexOf('get') === 0;
+    };
+
+    // Returns whether or not the member is a setter.
+    ku.isSetter = function(name) {
+        return name.indexOf('set') === 0;
+    };
+
+    // Transforms the name from a getter name.
+    ku.fromGetter = function(name) {
+        return name.substring(3, 4).toLowerCase() + name.substring(5);
+    };
+
+    // Transforms the name from a setter name.
+    ku.fromSetter = function(name) {
+        return name.substring(4, 5).toLowerCase() + name.substring(6);
+    };
+
+    // Transforms the name to a getter name.
+    ku.toGetter = function(name) {
+        return 'get' + name.substring(0, 1).toUpperCase() + name.substring(1);
+    };
+
+    // Transforms the name to a setter name.
+    ku.toSetter = function(name) {
+        return 'set' + name.substring(0, 1).toUpperCase() + name.substring(1);
     };
 
     // Creates a knockup model.
@@ -48,9 +56,6 @@
                 relations  = {},
                 methods    = {},
                 self       = this;
-            
-            // Initialize the configuration.
-            this.config = ku.config;
 
             // The observer is what is returned when the object is accessed.
             this.observer = generateObserver.call(this);
@@ -99,7 +104,7 @@
                 });
 
                 each(computed, function(i, v) {
-                    out[i] = self[self.config.formatReader(i)]();
+                    out[i] = self[ku.formatGetter(i)]();
                 });
 
                 each(relations, function(i, v) {
@@ -154,11 +159,11 @@
                 if (typeof v === 'function') {
                     var name, type;
 
-                    if (self.config.isReader(i)) {
-                        name = self.config.fromReader(i);
+                    if (ku.isGetter(i)) {
+                        name = ku.fromGetter(i);
                         type = 'read';
-                    } else if (self.config.isWriter(i)) {
-                        name = self.config.fromWriter(i);
+                    } else if (ku.isSetter(i)) {
+                        name = ku.fromSetter(i);
                         type = 'write';
                     }
 
@@ -228,8 +233,18 @@
         // So static members can be accessed from an instance.
         model.prototype.$static = model;
 
+        // Ability to extend another model's definition.
+        model.extend = function(otherModel) {
+            otherModel = ku.isModel(otherModel) ? otherModel : ku.model(otherModel);
+            each(define, function(i, v) {
+                otherModel.definition[i] = v;
+            });
+            return otherModel;
+        };
+
         // Ability to inherit another model's definition.
         model.inherit = function(otherModel) {
+            otherModel = ku.isModel(otherModel) ? otherModel : ku.model(otherModel);
             each(otherModel.definition, function(i, v) {
                 define[i] = v;
             });
