@@ -30,12 +30,12 @@
 
     // Transforms the name from a getter name.
     ku.fromGetter = function(name) {
-        return name.substring(3, 4).toLowerCase() + name.substring(5);
+        return name.substring(3, 4).toLowerCase() + name.substring(4);
     };
 
     // Transforms the name from a setter name.
     ku.fromSetter = function(name) {
-        return name.substring(4, 5).toLowerCase() + name.substring(6);
+        return name.substring(3, 4).toLowerCase() + name.substring(4);
     };
 
     // Transforms the name to a getter name.
@@ -231,13 +231,15 @@
         model.definition = define;
 
         // So static members can be accessed from an instance.
-        model.prototype.self = model;
+        model.prototype.$static = model;
 
         // Ability to extend another model's definition.
         model.extend = function(otherModel) {
             otherModel = ku.isModel(otherModel) ? otherModel : ku.model(otherModel);
             each(define, function(i, v) {
-                otherModel.definition[i] = v;
+                if (typeof otherModel.definition[i] === 'undefined') {
+                    otherModel.definition[i] = v;
+                }
             });
             return otherModel;
         };
@@ -403,7 +405,7 @@
 
             // Finds several items in the set.
             this.find = function(query, limit, page) {
-                var collection = new this.self.model.collection;
+                var collection = new this.$static.model.collection;
 
                 // Ensure proper object hierarchy.
                 collection.$parent = this.$parent;
@@ -472,7 +474,7 @@
 
         // Instance members.
         collection.prototype = {
-            self: collection
+            $static: collection
         };
 
         return collection;
