@@ -328,6 +328,14 @@
 
                 return this;
             };
+            
+            // Clears the whole collection leave the collection empty
+            this.empty = function() {
+                Array.prototype.splice.call(this, 0, this.length);
+                this.observer.notifySubscribers();
+                
+                return this;
+            }
 
             // Prepends the specified model.
             this.prepend = function(item) {

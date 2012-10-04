@@ -42,6 +42,9 @@ Knockup does not change anything about how you compose your views, just how you 
         { name: 'John Doe' },
         { name: 'Jane Doe' }
     ]);
+
+    // remove all the people from the list
+    app.people().empty();
     
     // select John
     app.people().at(0).toggle();
