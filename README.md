@@ -1,65 +1,12 @@
-Knockup - ORM for Knockout
+Knockup - MVC for Knockout
 ==========================
 
-Knockup gives you a simple API for managing and relating JavaScript objects and handing them off to Knockout to use.
-
-Overview
---------
-
-Knockup does not change anything about how you compose your views, just how you compose your models, so it can be a drop in solution:
-
-    // define your person model
-    var person = ku.model({
-        forename: '',
-        surname: '',
-        selected: false,
-        readName: function() {
-            return this.forename() + ' ' + this.surname();
-        },
-        writeName: function(name) {
-            var names = name.split(' ');
-            this.forename(names[0]);
-            this.surname(names[1]);
-        },
-        toggle: function() {
-            this.selected(!this.selected());
-        }
-    });
-
-    // define the app model
-    var view = ku.model({
-        people: person.collection,
-        readPerson: function() {
-            return this.people().findOne({ selected: true });
-        }
-    });
-    
-    // bind to the view
-    var app = view.knockup();
-    
-    // add a people to the list
-    app.people([
-        { name: 'John Doe' },
-        { name: 'Jane Doe' }
-    ]);
-
-    // remove all the people from the list
-    app.people().empty();
-    
-    // select John
-    app.people().at(0).toggle();
-
-Your view may look something like:
-
-    <div data-bind="text: person().forename"></div>
-    <ul data-bind="foreach: people">
-        <li><a href="#" data-bind="click: toggle, text: name"></a></li>
-    </ul>
+Knockup builds on Knockout to give you a complete MVC solution for building RESTful JavaScript web applications. Its only dependency is Knockout, but is compatible with any CommonJS AMD library. There's no silly "Starter Kit", or chain of depenencies that you need to install. Just make sure you've got Knockout and Knockup, and you're ready to start coding.
 
 Conventions
 -----------
 
-Knockup makes a few design choices for you, but keeps things as simple as possible:
+Knockup makes a few design choices for you to keep things as simple as possible:
 
 1. You define your model by passing an object to the `ku.model` function and it returns a constructor for that model.
 2. Any property passed in becomes observable and its value is used as the default.
