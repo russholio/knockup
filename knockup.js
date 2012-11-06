@@ -1262,16 +1262,13 @@
             var self = this;
 
             if (this.cache[name]) {
-                doRender(this.cache[name]);
-            } else {
+                this.renderer(this.cache[name], model);
+            } else if (var el = document.getElementById(name)) {
+                this.renderer(this.cache[name] = el.innerHTML, model);
+            } else if (this.rest) {
                 this.rest.get(name, function(html) {
-                    this.cache[name] = html;
-                    doRender(html);
+                    self.renderer(this.cache[name] = html, model);
                 });
-            }
-
-            function doRender(view) {
-                self.renderer(view, model);
             }
 
             return this;
