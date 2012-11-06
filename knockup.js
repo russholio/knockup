@@ -1245,6 +1245,11 @@
     ku.View.prototype = {
         // ### Instance Properties
 
+        // #### rest
+        // 
+        // `Rest` The REST client used to locate views.
+        rest: false,
+
         // #### target
         // 
         // `String` The ID of the target container for the view.
@@ -1261,6 +1266,11 @@
         render: function(name, model) {
             var self = this;
 
+            // Template resolution can take 3 steps.
+            // 
+            // 1. We look in the cache. If it's here, we render it.
+            // 2. If not in the cache, we look for a script tag with an id matching the view name. If found, it's cached and rendered.
+            // 3. Lastly, we attept to load it using the REST client. If found, it is cached and rendered. 
             if (this.cache[name]) {
                 this.renderer(this.cache[name], model);
             } else if (var el = document.getElementById(name)) {
@@ -1281,9 +1291,20 @@
         // 1. `String view` The view to render.
         // 2. `Model model` The view model to bind to the view being rendered.
         renderer: function(view, model) {
-            var container = document.getElementById(this.target);
-            container.innerHTML = view;
-            model.knockup(container);
+            var target = this.target;
+
+            // Target can be an element id, function returning the object or a DOM object.
+            if (typeof target === 'string') {
+                target = document.getElementById(target);
+            } else if (typeof target === 'function') {
+                var target = target();
+            }
+
+            // Just set the innerHTML.
+            target.innerHTML = view;
+
+            // Once set, we can apply the view model to it.
+            model.knockup(target);
         };
     };
 
