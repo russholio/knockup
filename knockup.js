@@ -1108,30 +1108,76 @@
     };
 
     ku.Rest.prototype = {
+        // ### delete
+        // 
+        // `Rest` Makes a delete request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Function fn` The callback.
         delete: function(url, fn) {
             return this.request(url, {}, 'delete', fn);
         },
 
+        // ### get
+        // 
+        // `Rest` Makes a get request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Function fn` The callback.
         get: function(url, fn) {
             return this.request(url, {}, 'get', fn);
         },
 
+        // ### head
+        // 
+        // `Rest` Makes a head request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Function fn` The callback.
         head: function(url, fn) {
             return this.request(url, {}, 'head', fn);
         },
 
+        // ### options
+        // 
+        // `Rest` Makes a options request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Function fn` The callback.
         options: function(url, fn) {
             return this.request(url, {}, 'options', fn);
         },
 
+        // ### post
+        // 
+        // `Rest` Makes a post request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Object data` The data to pass.
+        // 3. `Function fn` The callback.
         post: function(url, data, fn) {
             return this.request(url, data, 'post', fn);
         },
 
+        // ### put
+        // 
+        // `Rest` Makes a put request.
+        // 
+        // 1. `String url` The url to request.
+        // 2. `Object data` The data to pass.
+        // 3. `Function fn` The callback.
         put: function(url, data, fn) {
             return this.request(url, data, 'put', fn);
         },
 
+        // ### request
+        // 
+        // `Rest` Makes a generic request.
+        // 
+        // 1. `String url` The ur lto request.
+        // 2. `Object data` The data to pass.
+        // 3. `String type` The type of request.
+        // 4. `Function fn` The callback.
         request: function(url, data, type, fn) {
             var request   = false,
                 factories = [
