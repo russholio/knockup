@@ -1225,4 +1225,69 @@
         }
     };
 
+
+
+    // View
+    // ----
+    // 
+    // The view component is responsible for locating a view and rendering it. Rendering it consists generally of
+    // binding a model to the returned view and inserting it into the DOM. A custom renderer can be specified if
+    // necessary, but it shouldn't be necessary for 99% of use cases.
+
+    // ### Constructor
+    // 
+    // `View` Sets up the view.
+    ku.View = function() {
+        this.rest = new ku.Rest;
+        return this;
+    };
+
+    ku.View.prototype = {
+        // ### Instance Properties
+
+        // #### target
+        // 
+        // `String` The ID of the target container for the view.
+        target: 'ku-view',
+
+        // ### Instance Methods
+
+        // #### render
+        // 
+        // `View` Renders the view and binds the specified model to it.
+        // 
+        // 1. `String name` The name of the view to render.
+        // 2. `Model model` The model to bind to the view.
+        render: function(name, model) {
+            var self = this;
+
+            if (this.cache[name]) {
+                doRender(this.cache[name]);
+            } else {
+                this.rest.get(name, function(html) {
+                    this.cache[name] = html;
+                    doRender(html);
+                });
+            }
+
+            function doRender(view) {
+                self.renderer(view, model);
+            }
+
+            return this;
+        },
+
+        // #### renderer
+        // 
+        // `void` The default renderer.
+        // 
+        // 1. `String view` The view to render.
+        // 2. `Model model` The view model to bind to the view being rendered.
+        renderer: function(view, model) {
+            var container = document.getElementById(this.target);
+            container.innerHTML = view;
+            model.knockup(container);
+        };
+    };
+
 });
