@@ -1117,6 +1117,11 @@
         // `String` The URL suffix to append to each request.
         suffix: '',
 
+        // ### type
+        // 
+        // `String` The content type of the request.
+        type: 'text/plain',
+
         // ### delete
         // 
         // `Rest` Makes a delete request.
@@ -1211,6 +1216,7 @@
             }
 
             request.open(type, this.prefix + url + this.suffix, true);
+            request.setRequestHeader('Content-Type', this.type);
 
             request.onreadystatechange = function () {
                 if (request.readyState != 4) {
