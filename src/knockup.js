@@ -1120,7 +1120,7 @@
         // ### type
         // 
         // `String` The content type of the request.
-        type: 'text/plain',
+        accept: 'text/plain',
 
         // ### delete
         // 
@@ -1216,7 +1216,7 @@
             }
 
             request.open(type, this.prefix + url + this.suffix, true);
-            request.setRequestHeader('Content-Type', this.type);
+            request.setRequestHeader('Accept', this.accept);
 
             request.onreadystatechange = function () {
                 if (request.readyState != 4) {
