@@ -817,8 +817,8 @@
                 return false;
             }
 
-            // the request is always the first parameter
-            params.unshift(request);
+            // remove the matched portion
+            params.shift();
 
             // return the parameter object
             return params;
@@ -1102,12 +1102,21 @@
     // 
     // The REST component is designed to give you a way to easily make RESTful requests to and endpoint.
 
-    ku.Rest = function(baseUrl) {
-        this.baseUrl = baseUrl;
+    ku.Rest = function() {
         return this;
     };
 
     ku.Rest.prototype = {
+        // ### url
+        // 
+        // `String` The URL prefix to prepend to each request.
+        prefix: '',
+
+        // ### suffix
+        // 
+        // `String` The URL suffix to append to each request.
+        suffix: '',
+
         // ### delete
         // 
         // `Rest` Makes a delete request.
@@ -1201,7 +1210,7 @@
                 return;
             }
 
-            request.open(type, this.baseUrl + url, true);
+            request.open(type, this.prefix + url + this.suffix, true);
 
             request.onreadystatechange = function () {
                 if (request.readyState != 4) {
@@ -1212,7 +1221,7 @@
                     return;
                 }
 
-                fn(request);
+                fn(request.responseText);
             }
 
             if (request.readyState == 4) {
@@ -1238,12 +1247,20 @@
     // 
     // `View` Sets up the view.
     ku.View = function() {
-        this.rest = new ku.Rest;
+        this.rest        = new ku.Rest;
+        this.rest.prefix = 'views/';
+        this.rest.suffix = '.html';
+
         return this;
     };
 
     ku.View.prototype = {
         // ### Instance Properties
+
+        // #### cache
+        // 
+        // `Object` The view cache.
+        cache: {},
 
         // #### rest
         // 
@@ -1273,11 +1290,11 @@
             // 3. Lastly, we attept to load it using the REST client. If found, it is cached and rendered. 
             if (this.cache[name]) {
                 this.renderer(this.cache[name], model);
-            } else if (var el = document.getElementById(name)) {
-                this.renderer(this.cache[name] = el.innerHTML, model);
+            } else if (document.getElementById(name)) {
+                this.renderer(this.cache[name] = document.getElementById(name).innerHTML, model);
             } else if (this.rest) {
                 this.rest.get(name, function(html) {
-                    self.renderer(this.cache[name] = html, model);
+                    self.renderer(self.cache[name] = html, model);
                 });
             }
 
@@ -1305,7 +1322,7 @@
 
             // Once set, we can apply the view model to it.
             model.knockup(target);
-        };
+        }
     };
 
 });
