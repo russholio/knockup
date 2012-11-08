@@ -117,7 +117,7 @@
                 return clone;
             };
 
-            // Resest the model back to defaults.
+            // Reset the model back to defaults.
             this.reset = function() {
                 each(properties, function(i, v) {
                     self[i](v);
