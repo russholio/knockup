@@ -561,6 +561,12 @@
     ku.Router = function() {
         this.state = new ku.State;
         this.view  = new ku.View;
+        
+        this.di = {
+            rest: new ku.Rest,
+            route: this
+        };
+
         return this;
     };
 
@@ -693,17 +699,17 @@
                 // If a route is matched, it returns an array of matched parameters, otherwise it returns false.
                 if (typeof params.length === 'number') {
                     // Call the current route's `exit` callback. If it returns false, do not apply the new route.
-                    if (this.route && this.route.exit.apply(route, params) === false) {
+                    if (this.route && this.route.exit.apply(this.di, params) === false) {
                         return this;
                     }
 
                     // Call the new route's `enter` callback and allow it to cancel switching to the new route.
-                    if (route.enter.apply(route, params) === false) {
+                    if (route.enter.apply(this.di, params) === false) {
                         return this;
                     }
 
                     // Action the new route.
-                    var model = route.action.apply(route, params);
+                    var model = route.action.apply(this.di, params);
 
                     // Render the corresponding view with the returned model.
                     this.view.render(route.view, model);
@@ -1100,7 +1106,7 @@
     // REST
     // ----
     // 
-    // The REST component is designed to give you a way to easily make RESTful requests to and endpoint.
+    // The REST component is designed to give you a way to easily make RESTful requests to an endpoint.
 
     ku.Rest = function() {
         return this;
