@@ -564,7 +564,7 @@
         
         this.di = {
             rest: new ku.Rest,
-            route: this
+            router: this
         };
 
         return this;
