@@ -711,8 +711,16 @@
                     // Action the new route.
                     var model = route.action.apply(this.di, params);
 
-                    // Render the corresponding view with the returned model.
-                    this.view.render(route.view, model);
+                    // Render the corresponding view with the model, but only if a model exists.
+                    if (model) {
+                        if (model.constructor === 'Object') {
+                            model = ku.model(model);
+                        } else if (!ku.isModel(model)) {
+                            throw new Error('The object returned from the route "' + i + '" must either be an Object or a view model constructor return from `ku.model()`.');
+                        }
+
+                        this.view.render(route.view, model);
+                    }
 
                     // Apply the new route.
                     this.route = route;
