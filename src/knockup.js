@@ -18,7 +18,7 @@
         throw new Error('KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.');
     }
     
-    // Returns whether or not the mmber is a getter.
+    // Returns whether or not the member is a getter.
     function isReader(name) {
         return name.indexOf('read') === 0;
     };
