@@ -1,5 +1,5 @@
 {
-  "name": "Knockup",
+  "name": "knockup",
   "version": "1.0.0",
   "main": "src/knockup.js",
   "dependencies": {
