@@ -396,7 +396,7 @@
             };
 
             // Executes the callback for each item in the set.
-            this.each = function(fn, data) {
+            this.each = function(fn) {
                 for (var i = 0; i < this.length; i++) {
                     fn.call(this, i, this[i]);
                 }
