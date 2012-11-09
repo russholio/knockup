@@ -1114,7 +1114,6 @@
     // ----
     // 
     // The REST component is designed to give you a way to easily make RESTful requests to an endpoint.
-
     ku.Rest = function() {
         return this;
     };
@@ -1284,7 +1283,9 @@
                 }
 
                 // Pass the formatted response to the callback.
-                fn(response);
+                if (typeof fn === 'function') {
+                    fn(response);
+                }
             }
 
             // Don't do anything if the request isn't ready yet.
