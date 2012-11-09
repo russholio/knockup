@@ -1246,7 +1246,7 @@
         //     rest.request('some/url', { some: 'param' }, 'patch', function(response) {
         //         console.log(response);
         //     });
-        request: function(url, data, type, fn) {
+        request: function(url, data, type, fn, headers) {
             var self = this;
             var request = false;
             var factories = [
@@ -1272,6 +1272,12 @@
 
             request.open(type, this.prefix + url + this.suffix, true);
             request.setRequestHeader('Accept', this.accept);
+
+            if (typeof headers === "object") {
+                for (var header in headers) {
+                    request.setRequestHeader(header, headers[header]);
+                }
+            }
 
             request.onreadystatechange = function () {
                 if (request.readyState !== 4) {
