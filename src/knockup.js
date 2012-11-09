@@ -1092,7 +1092,7 @@
             // remove the dummy node
             document.body.removeChild(dummy);
 
-            // re-apply the nold node's id if it exists
+            // re-apply the old node's id if it exists
             if (node) {
                 node.id = id;
             }
