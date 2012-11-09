@@ -14,15 +14,6 @@ Knockup makes a few design choices for you to keep things as simple as possible:
 4. If you pass in a model, that property will always contain an instance of that model.
 5. If you pass in a model collection, that property will always contain a collection of its corresponding models.
 
-Examples
---------
-
-Currently, there is only one example that shows off most knockup / knockout features.
-
-1. [Notes](http://treshugart.github.com/knockup/examples/notes.html)
-
-I had to FORCE myself from doing a todo app!
-
 License
 -------
 
