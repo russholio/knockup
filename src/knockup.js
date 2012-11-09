@@ -1218,7 +1218,7 @@
 
         // ### POST Requests
         // 
-        // Makes a request using the `PATCH` method. The following are equivalent:
+        // Makes a request using the `POST` method. The following are equivalent:
         // 
         //     rest.post(url, data, fn);
         //     this.request(url, data, 'post', fn);
@@ -1228,7 +1228,7 @@
 
         // ### PUT Requests
         // 
-        // Makes a request using the `PATCH` method. The following are equivalent:
+        // Makes a request using the `PUT` method. The following are equivalent:
         // 
         //     rest.put(url, data, fn);
         //     this.request(url, data, 'put', fn);
