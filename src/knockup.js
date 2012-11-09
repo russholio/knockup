@@ -713,12 +713,15 @@
 
                     // Render the corresponding view with the model, but only if a model exists.
                     if (model) {
-                        if (model.constructor === 'Object') {
-                            model = ku.model(model);
+                        if (model.constructor === Object) {
+                            model = new (ku.model(model));
                         } else if (!ku.isModel(model)) {
-                            throw new Error('The object returned from the route "' + i + '" must either be an Object or a view model constructor return from `ku.model()`.');
+                            throw new Error('The object returned from the route "' + i + '" must either be an Object or a view model constructor return from "ku.model()". Instead, "' + (typeof model) + '" was returned.');
                         }
+                    }
 
+                    // If the return value is false, don't render the view.
+                    if (model !== false) {
                         this.view.render(route.view, model);
                     }
 
@@ -1121,94 +1124,129 @@
     };
 
     ku.Rest.prototype = {
-        // ### url
+        // ### Using a Default URL Prefix
         // 
-        // `String` The URL prefix to prepend to each request.
+        // A lot of times, you will want to always call a request that begins with the same thing. By setting the `prefix` property you are telling the client to always prepend this to the requested URL.
+        // 
+        //     rest.prefix = 'api/';
         prefix: '',
 
-        // ### suffix
+        // ### Using a Default URL Suffix
         // 
-        // `String` The URL suffix to append to each request.
+        // For some applications, you will always want to request URLs ending in a given suffix, or extension. By setting the `suffix` property it tells the client to always append this suffix to the requested URL.
+        // 
+        //     rest.suffix = '.json';
         suffix: '',
 
-        // ### type
+        // ### Specifying a Default Content Type to Accept
         // 
-        // `String` The content type of the request.
-        accept: 'text/plain',
+        // Setting the `accept` property tells the client to set the `Accept` header to the given value. By default this is set to `application/json` since this is very common. However, if you are consuming another type of service, you will want to change this accordingly:
+        // 
+        //     rest.accept = 'text/xml';
+        //     rest.accept = 'text/plain';
+        //     // ...
+        // 
+        // The value of the `accept` property also maps directly to `parsers` which parse the resulting response text and pass it to your request callback.
+        accept: 'application/json',
 
-        // ### delete
+        // ### Response Parsers
         // 
-        // `Rest` Makes a delete request.
+        // By default, a plain text response is returned unless a given parser is found for it. Response parsers are just simple functions that take the response text and return a parsed value.
         // 
-        // 1. `String url` The url to request.
-        // 2. `Function fn` The callback.
+        //     rest.parsers['application/json']('{ "some": "json string" }');
+        // 
+        // By default, the only included parser is for `application/json`. If you need to add one, simply specify a function for the given content type you require:
+        // 
+        //     rest.parsers['text/xml'] = function(response) {
+        //         return jQuery(response);
+        //     };
+        parsers: {
+            'application/json': function(response) {
+                return JSON.parse(response);
+            }
+        },
+
+        // ### DELETE Requests
+        // 
+        // Makes a request using the `DELETE` method. The following are equivalent:
+        // 
+        //     rest.delete(url, fn);
+        //     this.request(url, undefined, 'delete', fn);
         delete: function(url, fn) {
             return this.request(url, {}, 'delete', fn);
         },
 
-        // ### get
+        // ### GET Requests
         // 
-        // `Rest` Makes a get request.
+        // Makes a request using the `GET` method. The following are equivalent:
         // 
-        // 1. `String url` The url to request.
-        // 2. `Function fn` The callback.
+        //     rest.get(url, fn);
+        //     this.request(url, undefined, 'get', fn);
         get: function(url, fn) {
             return this.request(url, {}, 'get', fn);
         },
 
-        // ### head
+        // ### HEAD Requests
         // 
-        // `Rest` Makes a head request.
+        // Makes a request using the `HEAD` method. The following are equivalent:
         // 
-        // 1. `String url` The url to request.
-        // 2. `Function fn` The callback.
+        //     rest.head(url, fn);
+        //     this.request(url, undefined, 'head', fn);
         head: function(url, fn) {
             return this.request(url, {}, 'head', fn);
         },
 
-        // ### options
+        // ### OPTIONS Requests
         // 
-        // `Rest` Makes a options request.
+        // Makes a request using the `OPTIONS` method. The following are equivalent:
         // 
-        // 1. `String url` The url to request.
-        // 2. `Function fn` The callback.
+        //     rest.options(url, fn);
+        //     this.request(url, undefined, 'options', fn);
         options: function(url, fn) {
             return this.request(url, {}, 'options', fn);
         },
 
-        // ### post
+        // ### PATCH Requests
         // 
-        // `Rest` Makes a post request.
+        // Makes a request using the `PATCH` method. Although `PATCH` requests aren't part of the final spec yet, a lot of APIs make use of them including GitHub. The following are equivalent:
         // 
-        // 1. `String url` The url to request.
-        // 2. `Object data` The data to pass.
-        // 3. `Function fn` The callback.
+        //     rest.patch(url, data, fn);
+        //     this.request(url, data, 'patch', fn);
+        patch: function(url, data, fn) {
+            return this.request(url, data, 'patch', fn);
+        },
+
+        // ### POST Requests
+        // 
+        // Makes a request using the `PATCH` method. The following are equivalent:
+        // 
+        //     rest.post(url, data, fn);
+        //     this.request(url, data, 'post', fn);
         post: function(url, data, fn) {
             return this.request(url, data, 'post', fn);
         },
 
-        // ### put
+        // ### PUT Requests
         // 
-        // `Rest` Makes a put request.
+        // Makes a request using the `PATCH` method. The following are equivalent:
         // 
-        // 1. `String url` The url to request.
-        // 2. `Object data` The data to pass.
-        // 3. `Function fn` The callback.
+        //     rest.put(url, data, fn);
+        //     this.request(url, data, 'put', fn);
         put: function(url, data, fn) {
             return this.request(url, data, 'put', fn);
         },
 
-        // ### request
+        // ### Manually specifying a request.
         // 
-        // `Rest` Makes a generic request.
+        // For most use-cases, using the pre-defined methods will work. However, there may be a case where you must manually make a request. You can do this with the `request` method.
         // 
-        // 1. `String url` The ur lto request.
-        // 2. `Object data` The data to pass.
-        // 3. `String type` The type of request.
-        // 4. `Function fn` The callback.
+        //     rest.request('some/url', { some: 'param' }, 'patch', function(response) {
+        //         console.log(response);
+        //     });
         request: function(url, data, type, fn) {
-            var request   = false,
-                factories = [
+            var self = this;
+            var request = false;
+            var factories = [
                     function () { return new XMLHttpRequest() },
                     function () { return new ActiveXObject('Msxml2.XMLHTTP') },
                     function () { return new ActiveXObject('Msxml3.XMLHTTP') },
@@ -1233,24 +1271,69 @@
             request.setRequestHeader('Accept', this.accept);
 
             request.onreadystatechange = function () {
-                if (request.readyState != 4) {
+                if (request.readyState !== 4) {
                     return;
                 }
 
-                if (request.status != 200 && request.status != 304) {
+                if (request.status !== 200 && request.status !== 304) {
                     return;
                 }
 
-                fn(request.responseText);
+                // Grab the response text so we can format it if a parser is found.
+                var response = request.responseText;
+
+                // If a parser is found, use it to parse the response.
+                if (typeof self.parsers[self.accept] !== 'undefined') {
+                    response = self.parsers[self.accept](response);
+                }
+
+                // Pass the formatted response to the callback.
+                fn(response);
             }
 
-            if (request.readyState == 4) {
+            // Don't do anything if the request isn't ready yet.
+            if (request.readyState === 4) {
                 return;
+            }
+
+            // Allow a model to be passed in.
+            if (ku.isModel(data)) {
+                data = data.export();
+            }
+
+            // Serialize objects.
+            if (typeof data === 'object') {
+                data = this.serialize(data);
+            }
+
+            // If there is data to send, set the appropriate request header.
+            if (data) {
+                request.setRequestHeader('Content-type','application/x-www-form-urlencoded')
             }
 
             request.send(data);
 
             return this;
+        },
+
+        // ### Serializing Requests
+        // 
+        // Generally, all parameters are serialized by each REST method, but you can call the serialize method manually if you like:
+        // 
+        //     rest.serialize({ str: 'some string', arr: [0, 1] });
+        // 
+        // Outputs:
+        // 
+        //     str=some%20string&arr[0]=0&arr[1]=1
+        serialize: function(obj, prefix) {
+            var str = [];
+
+            for (var p in obj) {
+                var k = prefix ? prefix + '[' + p + ']' : p, v = obj[p];
+                str.push(typeof v === 'object' ? this.serialize(v, k) : encodeURIComponent(k) + '=' + encodeURIComponent(v));
+            }
+
+            return str.join('&');
         }
     };
 
@@ -1270,6 +1353,7 @@
         this.rest        = new ku.Rest;
         this.rest.prefix = 'views/';
         this.rest.suffix = '.html';
+        this.rest.accept = 'text/html';
 
         return this;
     };
