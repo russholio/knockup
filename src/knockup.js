@@ -711,16 +711,12 @@
                     // Action the new route.
                     var model = route.action.apply(this.di, params);
 
-                    // Render the corresponding view with the model, but only if a model exists.
-                    if (model) {
-                        if (model.constructor === Object) {
-                            model = new (ku.model(model));
-                        } else if (!ku.isModel(model)) {
-                            throw new Error('The object returned from the route "' + i + '" must either be an Object or a view model constructor return from "ku.model()". Instead, "' + (typeof model) + '" was returned.');
-                        }
+                    // Ensure the return value is a model.
+                    if (model && model.constructor === Object) {
+                        model = new (ku.model(model));
                     }
 
-                    // If the return value is false, don't render the view.
+                    // If false is returned, then that means we don't render the view.
                     if (model !== false) {
                         this.view.render(route.view, model);
                     }
@@ -1424,8 +1420,10 @@
             // Just set the innerHTML.
             target.innerHTML = view;
 
-            // Once set, we can apply the view model to it.
-            model.knockup(target);
+            // Only apply the view model if one was passed.
+            if (ku.isModel(model)) {
+                model.knockup(target);
+            }
         }
     };
 
