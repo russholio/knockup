@@ -329,6 +329,14 @@
                 return this;
             };
 
+            // Clears all the models in the collection and notfies listeners
+            this.empty = function() {
+                Array.prototype.splice.call(this, 0, this.length);
+                this.observer.notifySubscribers();
+                
+                return this;
+            }
+
             // Prepends the specified model.
             this.prepend = function(item) {
                 return this.insert(0, item);
