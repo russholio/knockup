@@ -15,7 +15,7 @@
 }(function(ko, ku) {
     // Require KnockoutJS.
     if (typeof ko === 'undefined') {
-        throw new Error('KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.');
+        throw 'KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.';
     }
     
     // Returns whether or not the member is a getter.
@@ -579,10 +579,10 @@
 
         trigger: function(name) {
             if (typeof this.events[name] !== 'undefined') {
-                this.events[name].trigger();
+                if (this.events[name].trigger() === false) {
+                    return false;
+                }
             }
-
-            return this;
         }
     };
 
@@ -647,7 +647,9 @@
         //     event.trigger();
         trigger: function() {
             for (var i in this.stack) {
-                this.stack[i].call(this.proto);
+                if (this.stack[i].call(this.proto) === false) {
+                    return false;
+                }
             }
         }
     };
@@ -672,7 +674,7 @@
         
         // The router contains a DI object that is used to apply to the `action` so you can access these objects by using `this`.
         this.di = {
-            rest: new ku.Rest,
+            http: new ku.Http,
             router: this
         };
 
@@ -718,6 +720,7 @@
                     delete bound[i];
                 }
             }
+
             return this;
         },
 
@@ -759,6 +762,7 @@
             if (this.has(name)) {
                 return this.routes[name];
             }
+
             throw 'Route "' + name + '" does not exist.';
         },
 
@@ -780,6 +784,7 @@
             if (this.has(name)) {
                 delete this.routes[name];
             }
+
             return this;
         },
 
@@ -791,19 +796,14 @@
         dispatch: function(request) {
             // If no request is specified, default to the current state.
             if (typeof request === 'undefined') {
-                var request = this.state.get();
-            }
-
-            // Check and see if this is the same request that was routed last time. If it is, then don't do anything.
-            if (request === this.state.previous) {
-                return this;
+                request = this.state.get();
             }
 
             // Go through each route and attempt to action it if it matches. If it does not match continue to the next
             // one. If it does, action and return.
             for (var i in this.routes) {
-                var route  = this.routes[i];
-                var params = route.query(request);
+                var route  = this.routes[i],
+                    params = route.query(request);
 
                 // If a route is matched, it returns an array of matched parameters, otherwise it returns false.
                 if (typeof params.length === 'number') {
@@ -902,10 +902,10 @@
         // `RegExp` The regex to match against the request.
         match: /.*/,
 
-        // #### reverse
+        // #### format
         // 
-        // `String` The string to use for reverse engineering the route.
-        reverse: '',
+        // `String` The string to use for format engineering the route.
+        format: '',
 
         // #### view
         // 
@@ -944,12 +944,14 @@
         // 
         // `String` Reverse engineers the route into a hash fragment without the preceding hash mark.
         // 
-        // 1. `Object params` The named parameters to reverse engineer the route with.
+        // 1. `Object params` The named parameters to format engineer the route with.
         generate: function(params) {
-            var reverse = this.reverse;
+            var format = this.format;
+
             for (var name in params) {
-                reverse = reverse.replace(new RegExp('\:' + name, 'g'), params[name]);
+                format = format.replace(new RegExp('\:' + name, 'g'), params[name]);
             }
+
             return reverse;
         }
     };
@@ -1217,32 +1219,32 @@
     // ----
     // 
     // The REST component is designed to give you a way to easily make RESTful requests to an endpoint.
-    ku.Rest = function() {
+    ku.Http = function() {
         this.events = new ku.Events(this);
         return this;
     };
 
-    ku.Rest.prototype = {
+    ku.Http.prototype = {
         // ### Using a Default URL Prefix
         // 
         // A lot of times, you will want to always call a request that begins with the same thing. By setting the `prefix` property you are telling the client to always prepend this to the requested URL.
         // 
-        //     rest.prefix = 'api/';
+        //     http.prefix = 'api/';
         prefix: '',
 
         // ### Using a Default URL Suffix
         // 
         // For some applications, you will always want to request URLs ending in a given suffix, or extension. By setting the `suffix` property it tells the client to always append this suffix to the requested URL.
         // 
-        //     rest.suffix = '.json';
+        //     http.suffix = '.json';
         suffix: '',
 
         // ### Specifying a Default Content Type to Accept
         // 
         // Setting the `accept` property tells the client to set the `Accept` header to the given value. By default this is set to `application/json` since this is very common. However, if you are consuming another type of service, you will want to change this accordingly:
         // 
-        //     rest.accept = 'text/xml';
-        //     rest.accept = 'text/plain';
+        //     http.accept = 'text/xml';
+        //     http.accept = 'text/plain';
         //     // ...
         // 
         // The value of the `accept` property also maps directly to `parsers` which parse the resulting response text and pass it to your request callback.
@@ -1252,11 +1254,11 @@
         // 
         // By default, a plain text response is returned unless a given parser is found for it. Response parsers are just simple functions that take the response text and return a parsed value.
         // 
-        //     rest.parsers['application/json']('{ "some": "json string" }');
+        //     http.parsers['application/json']('{ "some": "json string" }');
         // 
         // By default, the only included parser is for `application/json`. If you need to add one, simply specify a function for the given content type you require:
         // 
-        //     rest.parsers['text/xml'] = function(response) {
+        //     http.parsers['text/xml'] = function(response) {
         //         return jQuery(response);
         //     };
         parsers: {
@@ -1269,7 +1271,7 @@
         // 
         // Makes a request using the `DELETE` method. The following are equivalent:
         // 
-        //     rest.delete(url, fn);
+        //     http.delete(url, fn);
         //     this.request(url, undefined, 'delete', fn);
         delete: function(url, fn) {
             return this.request(url, {}, 'delete', fn);
@@ -1279,7 +1281,7 @@
         // 
         // Makes a request using the `GET` method. The following are equivalent:
         // 
-        //     rest.get(url, fn);
+        //     http.get(url, fn);
         //     this.request(url, undefined, 'get', fn);
         get: function(url, fn) {
             return this.request(url, {}, 'get', fn);
@@ -1289,7 +1291,7 @@
         // 
         // Makes a request using the `HEAD` method. The following are equivalent:
         // 
-        //     rest.head(url, fn);
+        //     http.head(url, fn);
         //     this.request(url, undefined, 'head', fn);
         head: function(url, fn) {
             return this.request(url, {}, 'head', fn);
@@ -1299,7 +1301,7 @@
         // 
         // Makes a request using the `OPTIONS` method. The following are equivalent:
         // 
-        //     rest.options(url, fn);
+        //     http.options(url, fn);
         //     this.request(url, undefined, 'options', fn);
         options: function(url, fn) {
             return this.request(url, {}, 'options', fn);
@@ -1309,7 +1311,7 @@
         // 
         // Makes a request using the `PATCH` method. Although `PATCH` requests aren't part of the final spec yet, a lot of APIs make use of them including GitHub. The following are equivalent:
         // 
-        //     rest.patch(url, data, fn);
+        //     http.patch(url, data, fn);
         //     this.request(url, data, 'patch', fn);
         patch: function(url, data, fn) {
             return this.request(url, data, 'patch', fn);
@@ -1319,7 +1321,7 @@
         // 
         // Makes a request using the `POST` method. The following are equivalent:
         // 
-        //     rest.post(url, data, fn);
+        //     http.post(url, data, fn);
         //     this.request(url, data, 'post', fn);
         post: function(url, data, fn) {
             return this.request(url, data, 'post', fn);
@@ -1329,7 +1331,7 @@
         // 
         // Makes a request using the `PUT` method. The following are equivalent:
         // 
-        //     rest.put(url, data, fn);
+        //     http.put(url, data, fn);
         //     this.request(url, data, 'put', fn);
         put: function(url, data, fn) {
             return this.request(url, data, 'put', fn);
@@ -1339,7 +1341,7 @@
         // 
         // For most use-cases, using the pre-defined methods will work. However, there may be a case where you must manually make a request. You can do this with the `request` method.
         // 
-        //     rest.request('some/url', { some: 'param' }, 'patch', function(response) {
+        //     http.request('some/url', { some: 'param' }, 'patch', function(response) {
         //         console.log(response);
         //     });
         request: function(url, data, type, fn) {
@@ -1433,7 +1435,7 @@
         // 
         // Generally, all parameters are serialized by each REST method, but you can call the serialize method manually if you like:
         // 
-        //     rest.serialize({ str: 'some string', arr: [0, 1] });
+        //     http.serialize({ str: 'some string', arr: [0, 1] });
         // 
         // Outputs:
         // 
@@ -1463,10 +1465,10 @@
     // 
     // `View` Sets up the view.
     ku.View = function() {
-        this.rest        = new ku.Rest;
-        this.rest.prefix = 'views/';
-        this.rest.suffix = '.html';
-        this.rest.accept = 'text/html';
+        this.http        = new ku.Http;
+        this.http.prefix = 'views/';
+        this.http.suffix = '.html';
+        this.http.accept = 'text/html';
 
         return this;
     };
@@ -1479,10 +1481,10 @@
         // `Object` The view cache.
         cache: {},
 
-        // #### rest
+        // #### http
         // 
-        // `Rest` The REST client used to locate views.
-        rest: false,
+        // `Http` The REST client used to locate views.
+        http: false,
 
         // #### target
         // 
@@ -1509,8 +1511,8 @@
                 this.renderer(this.cache[name], model);
             } else if (document.getElementById(name)) {
                 this.renderer(this.cache[name] = document.getElementById(name).innerHTML, model);
-            } else if (this.rest) {
-                this.rest.get(name, function(html) {
+            } else if (this.http) {
+                this.http.get(name, function(html) {
                     self.renderer(self.cache[name] = html, model);
                 });
             }
