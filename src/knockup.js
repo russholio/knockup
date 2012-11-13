@@ -547,6 +547,113 @@
 
 
 
+    // Events
+    // ------
+    // 
+    // The `Events` component is used to manage a collection of different `Event` objects.
+    ku.Events = function(proto) {
+        this.proto = proto;
+        return this;
+    };
+
+    ku.Events.prototype = {
+        events: {},
+
+        on: function(name, handler) {
+            if (typeof this.events[name] === 'undefined') {
+                this.events[name] = new ku.Event;
+            }
+
+            this.events[name].bind(handler);
+
+            return this;
+        },
+
+        off: function(name, handler) {
+            if (typeof this.events[name] !== 'undefined') {
+                this.events[name].unbind(handler);
+            }
+
+            return this;
+        },
+
+        trigger: function(name) {
+            if (typeof this.events[name] !== 'undefined') {
+                this.events[name].trigger();
+            }
+
+            return this;
+        }
+    };
+
+    // Event
+    // -----
+    // 
+    // The event component is used internally, however, you can also use this to create event stacks that you can bind and unbind events to.
+
+    // ### Usage
+    // 
+    // Event stacks are meant to be applied as a property to an object rather than triggered by passing a string telling which event you want to bind.
+    // 
+    //     var myObj       = {};
+    //     myObj.triggered = false;
+    //     myObj.myEvent   = new ku.Event(myobj);
+    //     
+    //     myObj.myEvent.bind(function() {
+    //         this.triggered = true;
+    //     });
+    //     
+    //     ok(myObj.triggered, 'Event was not triggered.');
+    ku.Event = function(proto) {
+        this.proto = proto;
+        return this;
+    };
+
+    ku.Event.prototype = {
+        stack: [],
+
+        // You bind callbacks to the event object.
+        // 
+        //     event.bind(myCallback);
+        bind: function(cb) {
+            this.stack.push(cb);
+            return this;
+        },
+
+        // You can either unbind the whole stack by passing no arguments, or unbind a specific callback.
+        // 
+        //     event.unbind();
+        //     event.unbind(myCallback);
+        unbind: function(cb) {
+            if (cb) {
+                var stack = [];
+
+                for (var i in this.stack) {
+                    if (!this.stack[i] === cb) {
+                        stack.push(this.stack[i]);
+                    }
+                }
+
+                this.stack = stack;
+            } else {
+                this.stack = [];
+            }
+
+            return this;
+        },
+
+        // Triggering is as simple as calling a method.
+        // 
+        //     event.trigger();
+        trigger: function() {
+            for (var i in this.stack) {
+                this.stack[i].call(this.proto);
+            }
+        }
+    };
+
+
+
     // Router
     // ------
 
@@ -559,9 +666,11 @@
     // 
     // The main router that is responsible for routing hash changes.
     ku.Router = function() {
-        this.state = new ku.State;
-        this.view  = new ku.View;
+        this.events = new ku.Events(this);
+        this.state  = new ku.State;
+        this.view   = new ku.View;
         
+        // The router contains a DI object that is used to apply to the `action` so you can access these objects by using `this`.
         this.di = {
             rest: new ku.Rest,
             router: this
@@ -698,13 +807,19 @@
 
                 // If a route is matched, it returns an array of matched parameters, otherwise it returns false.
                 if (typeof params.length === 'number') {
-                    // Call the current route's `exit` callback. If it returns false, do not apply the new route.
-                    if (this.route && this.route.exit.apply(this.di, params) === false) {
+                    if (this.events.trigger('exit') === false) {
                         return this;
                     }
 
-                    // Call the new route's `enter` callback and allow it to cancel switching to the new route.
-                    if (route.enter.apply(this.di, params) === false) {
+                    if (this.route && this.events.trigger('exit.' + i) === false) {
+                        return this;
+                    }
+
+                    if (this.events.trigger('enter') === false) {
+                        return this;
+                    }
+
+                    if (this.events.trigger('enter.' + i) === false) {
                         return this;
                     }
 
@@ -799,22 +914,10 @@
 
         // ### Instance Methods
 
-        // #### enter
-        // 
-        // `Function` The callback to execute before actioning. If this returns false, actioning is cancelled and the
-        // route is not changed. Return `false` to cancel changing to this route and stay on the current route.
-        enter: function(){},
-
         // #### action
         // 
         // Callback to action the route - i.e. a controller.        
         action: function(){},
-
-        // #### exit
-        // 
-        // `Function` The callback to execute before going to the next route after this route has been actionned.
-        // Return `false` to stay on the current route and cancel changing to the next route.
-        exit: function(){},
 
         // #### query
         // 
@@ -1115,6 +1218,7 @@
     // 
     // The REST component is designed to give you a way to easily make RESTful requests to an endpoint.
     ku.Rest = function() {
+        this.events = new ku.Events(this);
         return this;
     };
 
@@ -1266,11 +1370,15 @@
             request.setRequestHeader('Accept', this.accept);
 
             request.onreadystatechange = function () {
+                // If it's not ready yet, just continue.
                 if (request.readyState !== 4) {
                     return;
                 }
 
+                // On an unsuccessful request, trigger error events.
                 if (request.status !== 200 && request.status !== 304) {
+                    self.events.trigger('error');
+                    self.events.trigger('stop');
                     return;
                 }
 
@@ -1286,6 +1394,10 @@
                 if (typeof fn === 'function') {
                     fn(response);
                 }
+
+                // Trigger success events.
+                self.events.trigger('success');
+                self.events.trigger('stop');
             }
 
             // Don't do anything if the request isn't ready yet.
@@ -1308,6 +1420,10 @@
                 request.setRequestHeader('Content-type','application/x-www-form-urlencoded')
             }
 
+            // Trigger start events.
+            this.events.trigger('start');
+
+            // Send the request.
             request.send(data);
 
             return this;
