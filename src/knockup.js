@@ -735,7 +735,7 @@
             if (typeof options === 'function') {
                 options = {
                     match: name,
-                    reverse: name,
+                    format: name,
                     action: options
                 };
             }
@@ -952,7 +952,7 @@
                 format = format.replace(new RegExp('\:' + name, 'g'), params[name]);
             }
 
-            return reverse;
+            return format;
         }
     };
 
