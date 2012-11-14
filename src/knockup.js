@@ -1098,7 +1098,11 @@
         // restore the state before the hash changed
         if (!scroll) {
             // remove the dummy node
-            document.body.removeChild(dummy);
+            try {
+                document.body.removeChild(dummy);
+            } catch (e) {
+                console.log(e); //TODO: some sort of error message or ignore
+            }
 
             // re-apply the old node's id if it exists
             if (node) {
