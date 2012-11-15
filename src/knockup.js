@@ -329,7 +329,7 @@
                 return this;
             };
 
-            // Clears all the models in the collection and notfies listeners
+            // Clears all the models in the collection and notifies listeners.
             this.empty = function() {
                 Array.prototype.splice.call(this, 0, this.length);
                 this.observer.notifySubscribers();
