@@ -586,7 +586,7 @@
 
         trigger: function(name, args) {
             if (typeof this.events[name] !== 'undefined') {
-                if (this.events[name].call(this.events[name], args) === false) {
+                if (this.events[name].trigger.call(this.events[name], args) === false) {
                     return false;
                 }
             }
