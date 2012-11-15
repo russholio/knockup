@@ -586,7 +586,7 @@
 
         trigger: function(name, args) {
             if (typeof this.events[name] !== 'undefined') {
-                if (this.events[name].trigger.call(this.events[name], args) === false) {
+                if (this.events[name].trigger(args) === false) {
                     return false;
                 }
             }
@@ -651,9 +651,9 @@
         // Triggering is as simple as calling a method.
         // 
         //     event.trigger();
-        trigger: function() {
+        trigger: function(args) {
             for (var i in this.stack) {
-                if (this.stack[i].call(this, arguments) === false) {
+                if (this.stack[i].apply(this, args) === false) {
                     return false;
                 }
             }
