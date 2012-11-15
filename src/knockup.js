@@ -559,8 +559,7 @@
     // ------
     // 
     // The `Events` component is used to manage a collection of different `Event` objects.
-    ku.Events = function(proto) {
-        this.proto = proto;
+    ku.Events = function() {
         return this;
     };
 
@@ -585,9 +584,9 @@
             return this;
         },
 
-        trigger: function(name) {
+        trigger: function(name, args) {
             if (typeof this.events[name] !== 'undefined') {
-                if (this.events[name].trigger() === false) {
+                if (this.events[name].trigger(args) === false) {
                     return false;
                 }
             }
@@ -605,15 +604,14 @@
     // 
     //     var myObj       = {};
     //     myObj.triggered = false;
-    //     myObj.myEvent   = new ku.Event(myobj);
+    //     myObj.myEvent   = new ku.Event;
     //     
     //     myObj.myEvent.bind(function() {
     //         this.triggered = true;
     //     });
     //     
     //     ok(myObj.triggered, 'Event was not triggered.');
-    ku.Event = function(proto) {
-        this.proto = proto;
+    ku.Event = function() {
         return this;
     };
 
@@ -653,9 +651,9 @@
         // Triggering is as simple as calling a method.
         // 
         //     event.trigger();
-        trigger: function() {
+        trigger: function(args) {
             for (var i in this.stack) {
-                if (this.stack[i].call(this.proto) === false) {
+                if (this.stack[i].apply(this, args) === false) {
                     return false;
                 }
             }
@@ -742,7 +740,7 @@
             // Allow a function to be passed (action) instead of options.
             if (typeof options === 'function') {
                 options = {
-                    match: name,
+                    match: new RegExp('^' + name + '$'),
                     format: name,
                     action: options
                 };
@@ -815,19 +813,19 @@
 
                 // If a route is matched, it returns an array of matched parameters, otherwise it returns false.
                 if (typeof params.length === 'number') {
-                    if (this.events.trigger('exit') === false) {
+                    if (this.events.trigger('exit', [this]) === false) {
                         return this;
                     }
 
-                    if (this.route && this.events.trigger('exit.' + i) === false) {
+                    if (this.route && this.events.trigger('exit.' + i, [this, this.route]) === false) {
                         return this;
                     }
 
-                    if (this.events.trigger('enter') === false) {
+                    if (this.events.trigger('enter', [this]) === false) {
                         return this;
                     }
 
-                    if (this.events.trigger('enter.' + i) === false) {
+                    if (this.events.trigger('enter.' + i, [this, route]) === false) {
                         return this;
                     }
 
