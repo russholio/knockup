@@ -1374,7 +1374,7 @@
                 return;
             }
 
-            request.open(type, this.prefix + url + this.suffix, true);
+            request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
             request.setRequestHeader('Accept', this.accept);
 
             request.onreadystatechange = function () {
