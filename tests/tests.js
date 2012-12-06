@@ -24,7 +24,35 @@ test('Instantiating', function() {
     ok(typeof instance.undefinedProperty === 'undefined', 'Undefined properties should not be set.');
 });
 
+test('Relationships', function() {
+    var Friend = ku.model({
+        name: ''
+    });
+
+    var User = ku.model({
+        bestFriend: Friend,
+        friends: Friend.collection
+    });
+
+    var user = new User().bestFriend({
+        name: 'Dog'
+    }).friends([
+        { name: 'Cat' },
+        { name: 'Lizard' }
+    ]);
+
+    var exported = user.export();
+
+    ok(exported.bestFriend.name === user.bestFriend().name(), 'Dog should be the best friend.');
+    ok(exported.friends[0].name === user.friends().first().name(), 'Cat should be 2nd best.');
+    ok(exported.friends[1].name === user.friends().at(1).name(), 'Lizard should be 3rd best.');
+});
+
 test('Readers', function() {
+    var Friend = ku.model({
+        user: 0
+    });
+
     var User = ku.model({
         forename: '',
         surname: '',
@@ -33,12 +61,8 @@ test('Readers', function() {
         }
     });
 
-    var user = new User;
-    user.forename('Barbara');
-    user.surname('Barberson');
-
+    var user     = new User().forename('Barbara').surname('Barberson');
     var exported = user.export();
 
-    ok(user.name() === 'Barbara Barberson', 'The `name` reader should return the full name.');
-    ok(exported.name === 'Barbara Barberson', 'The `name` reader should have been exported.');
+    ok(exported.name === user.name(), 'The `name` reader should have been exported.');
 });

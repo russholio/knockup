@@ -84,7 +84,7 @@
                 });
 
                 each(relations, function(i, v) {
-                    out[i] = self[i].export();
+                    out[i] = self[i]().export();
                 });
 
                 return out;
