@@ -49,10 +49,6 @@ test('Relationships', function() {
 });
 
 test('Readers', function() {
-    var Friend = ku.model({
-        user: 0
-    });
-
     var User = ku.model({
         forename: '',
         surname: '',
