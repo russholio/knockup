@@ -17,26 +17,6 @@
     if (typeof ko === 'undefined') {
         throw 'KnockoutJS is required. Download at https://github.com/SteveSanderson/knockout.';
     }
-    
-    // Returns whether or not the member is a getter.
-    function isReader(name) {
-        return name.indexOf('read') === 0;
-    };
-
-    // Returns whether or not the member is a setter.
-    function isWriter(name) {
-        return name.indexOf('write') === 0;
-    };
-
-    // Transforms the name from a getter name.
-    function fromReader(name) {
-        return name.substring(4, 5).toLowerCase() + name.substring(5);
-    };
-
-    // Transforms the name from a setter name.
-    function fromWriter(name) {
-        return name.substring(5, 6).toLowerCase() + name.substring(6);
-    };
 
 
 
@@ -100,7 +80,7 @@
                 });
 
                 each(computed, function(i, v) {
-                    out[i] = self[ku.formatGetter(i)]();
+                    out[i] = self[i]();
                 });
 
                 each(relations, function(i, v) {
@@ -154,11 +134,11 @@
                 if (typeof v === 'function') {
                     var name, type;
 
-                    if (isReader(i)) {
-                        name = fromReader(i);
+                    if (ku.isReader(i)) {
+                        name = ku.fromReader(i);
                         type = 'read';
-                    } else if (isWriter(i)) {
-                        name = fromWriter(i);
+                    } else if (ku.isWriter(i)) {
+                        name = ku.fromWriter(i);
                         type = 'write';
                     }
 
@@ -486,6 +466,36 @@
         };
 
         return collection;
+    };
+
+    // Returns whether or not the member is a reader.
+    ku.isReader = function(name) {
+        return name.indexOf('read') === 0;
+    };
+
+    // Returns whether or not the member is a writer.
+    ku.isWriter = function(name) {
+        return name.indexOf('write') === 0;
+    };
+
+    // Transforms the name to a reader name.
+    ku.toReader = function(name) {
+        return 'read' + name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
+    // Transforms the name to a writer name.
+    ku.toWriter = function(name) {
+        return 'write' + name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
+    // Transforms the name from a reader name.
+    ku.fromReader = function(name) {
+        return name.substring(4, 5).toLowerCase() + name.substring(5);
+    };
+
+    // Transforms the name from a writer name.
+    ku.fromWriter = function(name) {
+        return name.substring(5, 6).toLowerCase() + name.substring(6);
     };
 
     // Returns whether or not the speicfied function is a model constructor.
