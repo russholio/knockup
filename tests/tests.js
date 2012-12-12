@@ -1,4 +1,45 @@
-module('models');
+module('Attribute Bindings');
+
+asyncTest('Main', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-main', 'main.router');
+
+    ku.set('main.router', new ku.Router);
+    ku.get('main.router').set('index', function() {
+        return {
+            name: 'test'
+        };
+    });
+
+    ku.get('main.router').view.http.events.on('success', function() {
+        ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+
+    ku.run(div);
+    ku.get('main.router').go('index');
+});
+
+asyncTest('View', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-view', 'view.view');
+    div.setAttribute('data-ku-path', 'index');
+    div.setAttribute('data-ku-model', 'view.model');
+
+    ku.set('view.view', new ku.View);
+    ku.set('view.model', {
+        name: 'test'
+    });
+
+    ku.get('view.view').http.events.on('success', function() {
+        ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+
+    ku.run(div);
+});
+
+module('Models and Collections');
 
 test('Defining', function() {
     var User = ku.model({
