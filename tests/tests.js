@@ -72,7 +72,7 @@ test('Relationships', function() {
 
     var User = ku.model({
         bestFriend: Friend,
-        friends: Friend.collection
+        friends: Friend.Collection
     });
 
     var user = new User().bestFriend({

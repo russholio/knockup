@@ -218,7 +218,7 @@
 
 
     ku.model = function(define) {
-        var model = function(data) {
+        var Model = function(data) {
             var computed   = {},
                 properties = {},
                 relations  = {},
@@ -226,22 +226,6 @@
                 self       = this;
 
             this.observer = generateObserver.call(this);
-            
-            this.proxy = function(fn) {
-                if (typeof fn === 'string') {
-                    fn = self[fn];
-                }
-                
-                if (!fn) {
-                    return function() {};
-                }
-                
-                var args = Array.prototype.slice.call(arguments, 1);
-                
-                return function() {
-                    return fn.apply(self, args);
-                }
-            };
 
             this.import = function(obj) {
                 if (ku.isModel(obj)) {
@@ -279,7 +263,9 @@
 
             this.clone = function() {
                 var clone = new model(this.export());
+
                 clone.$parent = this.$parent;
+
                 return clone;
             };
 
@@ -287,6 +273,7 @@
                 each(properties, function(i, v) {
                     self[i](v);
                 });
+
                 return this;
             };
 
@@ -353,39 +340,39 @@
             }
         };
 
-        model.collection        = ku.collection(model);
-        model.definition        = define;
-        model.prototype.$static = model;
+        Model.Collection      = ku.collection(Model);
+        Model.definition      = define;
+        Model.prototype.$self = Model;
 
-        model.extend = function(otherModel) {
-            otherModel = ku.isModel(otherModel) ? otherModel : ku.model(otherModel);
+        Model.extend = function(OtherModel) {
+            OtherModel = ku.isModel(OtherModel) ? OtherModel : ku.model(OtherModel);
             
             each(define, function(i, v) {
-                if (typeof otherModel.definition[i] === 'undefined') {
-                    otherModel.definition[i] = v;
+                if (typeof OtherModel.definition[i] === 'undefined') {
+                    OtherModel.definition[i] = v;
                 }
             });
 
-            return otherModel;
+            return OtherModel;
         };
 
-        model.inherit = function(otherModel) {
-            otherModel = ku.isModel(otherModel) ? otherModel : ku.model(otherModel);
+        Model.inherit = function(OtherModel) {
+            OtherModel = ku.isModel(OtherModel) ? OtherModel : ku.model(OtherModel);
 
-            each(otherModel.definition, function(i, v) {
+            each(OtherModel.definition, function(i, v) {
                 define[i] = v;
             });
 
-            return model;
+            return Model;
         };
 
-        return model;
+        return Model;
     };
 
 
 
     ku.collection = function(model) {
-        var collection = function(data) {
+        var Collection = function(data) {
             Array.prototype.push.apply(this, []);
 
             this.observer = generateObserver.call(this);
@@ -513,7 +500,7 @@
             };
 
             this.find = function(query, limit, page) {
-                var collection = new this.$static.model.collection;
+                var collection = new this.$self.Model.Collection;
 
                 collection.$parent = this.$parent;
 
@@ -567,13 +554,13 @@
             this.import(data);
         };
 
-        collection.model = model;
+        Collection.Model = model;
 
-        collection.prototype = {
-            $static: collection
+        Collection.prototype = {
+            $self: Collection
         };
 
-        return collection;
+        return Collection;
     };
 
 
