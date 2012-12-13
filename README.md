@@ -69,11 +69,11 @@ Now you can bind that item to something in your UI:
         </ul>
     </div>
 
-You can even tell that component to use an external view:
+You can even tell that element to use an external view:
 
     <div data-ku-model="notifications" data-ku-view="notifications"></div>
 
-That would automatically go and look for the view in `views/notifications.html` relative to the current URL render it inside of the component and bind the specified model to it.
+That would automatically go and look for the view in `views/notifications.html` relative to the current URL, render it inside of the element and bind the specified model to it.
 
 ### Adding Your Own Attribute Bindings
 
@@ -111,6 +111,8 @@ Application routing can range from simple to complex. A simple route only requir
 
 The `match` option specifies a regular expression that the current request is matched against. The current request if using `hashchange` is anything after the `#`. If using browser state, then it is anything relative to the current page.
 
+Parameters that are captured using parenthesis are passed in captured order to the controller function.
+
 #### Formatting
 
 The `format` paramter is a string that can be reverse engineered by the router given a parameters object.
@@ -125,6 +127,8 @@ The `view` option specifies which view to render using the view instance that is
 #### Controllers
 
 The controller is just a function that is executed that returns the model that should be applied to the view that will be rendered.
+
+The parameters passed to the controller are the parameters that were matched in the `match` regex in the order they were captured.
 
 Models and Collections
 ----------------------
