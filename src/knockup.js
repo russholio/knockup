@@ -71,7 +71,7 @@
 
     ku.element = document;
 
-    ku.attributes = {
+    ku.bindings = {
         model: function(element, value) {
             if (this.attr(element, 'view')) {
                 return;
@@ -140,11 +140,11 @@
         var self = this;
 
         each(element.attributes, function(i, node) {
-            if (node.nodeName.indexOf(ku.prefix) === 0) {
-                var name = node.nodeName.substring(ku.prefix.length);
+            if (node.nodeName.indexOf(self.prefix) === 0) {
+                var name = node.nodeName.substring(self.prefix.length);
 
-                if (typeof ku.attributes[name] === 'function') {
-                    ku.attributes[name].call(ku, element, node.nodeValue);
+                if (typeof self.bindings[name] === 'function') {
+                    self.bindings[name].call(self, element, node.nodeValue);
                 }
             }
         });

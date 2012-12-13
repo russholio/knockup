@@ -6,7 +6,7 @@ Knockup builds on Knockout to give you a complete MVC solution for building REST
 Features include:
 
 - Full MVC separation.
-- Full AMD / CommonJS support.
+- Full AMD / CommonJS support while falling back to setting the global `ku` object.
 - Complete Model / Collection and relationship management.
 - View component allowing views ot be separated into their own HTML files and cached for reuse.
 - Attribute bindings similar to AngularJS.
@@ -68,6 +68,24 @@ You can even tell that component to use an external view:
     <div data-ku-model="notifications" data-ku-view="notifications"></div>
 
 That would automatically go and look for the view in `views/notifications.html` relative to the current URL render it inside of the component and bind the specified model to it.
+
+### Adding Your Own Attribute Bindings
+
+All you need to do to add your own attribute bindings is to add a function to the `ku.bindings` object.
+
+    ku.bindings['my-custom-attribute'] = function(element, value) {
+
+    };
+
+Your function is passed the `element` that the attribute was bound to and the attribute `value` that the attribute was set to. You could now use this binding by:
+
+    <div data-ku-my-custom-attribute="my value"></div>
+
+### Changing the `data-ku-` Attribute Prefix
+
+If you need to, or feel like it, you can specify the prefix that you want to use for attribute bindings. All you need to do is change the `ku.prefix` property.
+
+    ku.prefix = 'my-custom-prefix-';
 
 Models and Collections
 ----------------------
