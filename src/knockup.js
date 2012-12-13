@@ -80,15 +80,15 @@
             ko.applyBindings(this.get(value), element);
         },
 
-        main: function(element, value) {
-            if (!this.has(value)) {
-                throw 'Cannot bind router "' + value + '" to the main view because it does not exist.';
-            }
-
+        router: function(element, value) {
             var router = this.get(value);
 
+            if (!router) {
+                ku.throwForElement(element, 'Cannot bind router "' + value + '" to the main view because it does not exist.');
+            }
+
             if (!router instanceof this.Router) {
-                throw 'Cannot bind router "' + value + '" to the main view because it is not an instanceof "ku.Router".';
+                ku.throwForElement(element, 'Cannot bind router "' + value + '" to the main view because it is not an instanceof "ku.Router".');
             }
 
             router.view.target = element;
@@ -97,9 +97,7 @@
 
         view: function(element, value) {
             var path  = this.attr(element, 'path');
-            var model = this.attr(element, 'model');
-
-            model = this.get(model);
+            var model = this.get(this.attr(element, 'model'));
 
             if (path) {
                 view = this.get(value);
@@ -213,6 +211,16 @@
         }
 
         return this;
+    };
+
+    ku.outerHtml = function(element) {
+        var div = document.createElement('div');
+        div.appendChild(element);
+        return div.innerHTML;
+    };
+
+    ku.throwForElement = function(element, message) {
+        throw message + "\n" + ku.outerHtml(element);
     };
 
 
@@ -686,11 +694,6 @@
         this.routes = {};
         this.state  = new ku.State;
         this.view   = new ku.View;
-        
-        this.di = {
-            http: new ku.Http,
-            router: this
-        };
 
         return this;
     };
@@ -782,7 +785,7 @@
                         return this;
                     }
 
-                    var model = route.action.apply(this.di, params);
+                    var model = route.action.apply(route.action, params);
 
                     if (model && model.constructor === Object) {
                         model = new (ku.model(model));

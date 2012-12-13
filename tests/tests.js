@@ -1,23 +1,41 @@
 module('Attribute Bindings');
 
-asyncTest('Main', function() {
+test('Model', function() {
     var div = document.createElement('div');
-    div.setAttribute('data-ku-main', 'main.router');
+    div.setAttribute('data-ku-model', 'model.model');
 
-    ku.set('main.router', new ku.Router);
-    ku.get('main.router').set('index', function() {
+    var span = document.createElement('div');
+    span.setAttribute('data-bind', 'text: name');
+
+    div.appendChild(span);
+
+    ku.set('model.model', {
+        name: 'test'
+    });
+
+    ku.run(div);
+
+    ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+});
+
+asyncTest('Router', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-router', 'router.router');
+
+    ku.set('router.router', new ku.Router);
+    ku.get('router.router').set('index', function() {
         return {
             name: 'test'
         };
     });
 
-    ku.get('main.router').view.http.events.on('success', function() {
+    ku.get('router.router').view.http.events.on('success', function() {
         ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
         start();
     });
 
     ku.run(div);
-    ku.get('main.router').go('index');
+    ku.get('router.router').go('index');
 });
 
 asyncTest('View', function() {

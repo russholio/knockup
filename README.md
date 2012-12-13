@@ -23,9 +23,9 @@ Getting Started
 
 To get started with Knockup, you must understand the two key points of how it binds itself to your UI and how it accesses the objects required to do that.
 
-### Main Content Area
+### Routable Content Area
 
-The first part is using a main content area. The main view area is bound to a router and affected by changes in the URL. Controllers are automatically called, and views are rendered and bound as the content to the main content area. It is not required to have a main content area but it is something most web-based applications will make ample use of.
+The first part is using a container that is bound to a router. This container is bound to a router and affected by changes in the URL. Controllers are automatically called and views are automatically rendered and bound as the content to the container. You can have as many containers bound to as many routers as you want. Most web-applications will just use one.
 
 To give the UI something to bind itself to, we must first set up our router:
 
@@ -37,7 +37,7 @@ To give the UI something to bind itself to, we must first set up our router:
 
 Now we have something we can bind the UI to:
 
-    <div data-ku-main="my-router"></div>
+    <div data-ku-router="my-router"></div>
 
 All we have to do to make everything work is:
 
