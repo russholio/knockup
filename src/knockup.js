@@ -726,7 +726,7 @@
                 options = {
                     match: new RegExp('^' + name + '$'),
                     format: name,
-                    action: options
+                    controller: options
                 };
             }
 
@@ -785,7 +785,7 @@
                         return this;
                     }
 
-                    var model = route.action.apply(route.action, params);
+                    var model = route.controller.apply(route.controller, params);
 
                     if (model && model.constructor === Object) {
                         model = new (ku.model(model));
@@ -835,7 +835,7 @@
 
         view: false,
 
-        action: function(){},
+        controller: function(){},
 
         query: function(request) {
             var params = request.match(this.match);
