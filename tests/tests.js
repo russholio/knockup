@@ -4,7 +4,7 @@ test('Model', function() {
     var div = document.createElement('div');
     div.setAttribute('data-ku-model', 'model.model');
 
-    var span = document.createElement('div');
+    var span = document.createElement('span');
     span.setAttribute('data-bind', 'text: name');
 
     div.appendChild(span);
@@ -15,7 +15,7 @@ test('Model', function() {
 
     ku.run(div);
 
-    ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+    ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
 });
 
 asyncTest('Router', function() {
@@ -30,7 +30,7 @@ asyncTest('Router', function() {
     });
 
     ku.get('router.router').view.http.events.on('success', function() {
-        ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
         start();
     });
 
@@ -50,7 +50,7 @@ asyncTest('View', function() {
     });
 
     ku.get('view.view').http.events.on('success', function() {
-        ok(div.childNodes[0].innerText === 'test', 'Inner text on div\'s child span should update.');
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
         start();
     });
 

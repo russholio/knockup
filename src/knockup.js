@@ -140,11 +140,11 @@
         var self = this;
 
         each(element.attributes, function(i, node) {
-            if (node.nodeName.indexOf(self.prefix) === 0) {
-                var name = node.nodeName.substring(self.prefix.length);
+            if (node.name.indexOf(self.prefix) === 0) {
+                var name = node.name.substring(self.prefix.length);
 
                 if (typeof self.bindings[name] === 'function') {
-                    self.bindings[name].call(self, element, node.nodeValue);
+                    self.bindings[name].call(self, element, node.value);
                 }
             }
         });
