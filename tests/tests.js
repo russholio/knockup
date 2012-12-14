@@ -1,4 +1,63 @@
-module('models');
+module('Attribute Bindings');
+
+test('Model', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-model', 'model.model');
+
+    var span = document.createElement('span');
+    span.setAttribute('data-bind', 'text: name');
+
+    div.appendChild(span);
+
+    ku.set('model.model', {
+        name: 'test'
+    });
+
+    ku.run(div);
+
+    ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+});
+
+asyncTest('Router', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-router', 'router.router');
+
+    ku.set('router.router', new ku.Router);
+    ku.get('router.router').set('index', function() {
+        return {
+            name: 'test'
+        };
+    });
+
+    ku.get('router.router').view.http.events.on('success', function() {
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+
+    ku.run(div);
+    ku.get('router.router').go('index');
+});
+
+asyncTest('View', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-view', 'view.view');
+    div.setAttribute('data-ku-path', 'index');
+    div.setAttribute('data-ku-model', 'view.model');
+
+    ku.set('view.view', new ku.View);
+    ku.set('view.model', {
+        name: 'test'
+    });
+
+    ku.get('view.view').http.events.on('success', function() {
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+
+    ku.run(div);
+});
+
+module('Models and Collections');
 
 test('Defining', function() {
     var User = ku.model({
@@ -31,7 +90,7 @@ test('Relationships', function() {
 
     var User = ku.model({
         bestFriend: Friend,
-        friends: Friend.collection
+        friends: Friend.Collection
     });
 
     var user = new User().bestFriend({
@@ -49,10 +108,6 @@ test('Relationships', function() {
 });
 
 test('Readers', function() {
-    var Friend = ku.model({
-        user: 0
-    });
-
     var User = ku.model({
         forename: '',
         surname: '',
