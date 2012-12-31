@@ -270,7 +270,7 @@
             };
 
             this.clone = function() {
-                var clone = new model(this.export());
+                var clone = new Model(this.export());
 
                 clone.$parent = this.$parent;
 
