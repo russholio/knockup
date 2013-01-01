@@ -121,3 +121,14 @@ test('Readers', function() {
 
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
 });
+
+test('No Model Binding', function() {
+    var view = new ku.View;
+    
+    view.target = document.createElement('div');
+    view.cache.test = 'test';
+
+    view.render('test');
+
+    ok(view.target.innerHTML === 'test', 'The view should render without a bound model.')
+});
