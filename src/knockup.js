@@ -1108,10 +1108,22 @@
                     return;
                 }
 
-                var response = request.responseText;
+                var response       = request.responseText;
+                var responseParsed = false;
+                
+                for  (x in request.getAllResponseHeaders) {
+                    if (x == 'Content-Type') {
+                        if (self.parsers[request.getResponseHeader(x)]) {
+                            responseParsed = true;
+                            response = self.parsers[request.getResponseHeader(x)](response);
+                        }
+                    }
+                }
 
-                if (typeof self.parsers[self.accept] !== 'undefined') {
-                    response = self.parsers[self.accept](response);
+                if (!responseParsed && self.headers['Accept']) {
+                    if (self.parsers[self.headers['Accept']]) {
+                        response = self.parsers[self.headers['Accept']](response);
+                    }
                 }
 
                 if (typeof fn === 'function') {
