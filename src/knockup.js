@@ -1031,13 +1031,8 @@
         prefix: '',
 
         suffix: '',
-
-        accept: 'application/json',
         
-        auth: {
-            key:   'Authorization',
-            value: ''
-        },
+        headers: ['Accept': 'application/json'],
 
         parsers: {
             'application/json': function(response) {
@@ -1098,8 +1093,8 @@
             request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
             request.setRequestHeader('Accept', this.accept);
 
-            if (this.auth.value) {
-                request.setRequestHeader(this.auth.key, this.auth.value);
+            for (x in headers) {
+                request.setRequestHeader(x, this.headers[x]);
             }
 
             request.onreadystatechange = function () {
