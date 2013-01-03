@@ -57,6 +57,8 @@ asyncTest('View', function() {
     ku.run(div);
 });
 
+
+
 module('Models and Collections');
 
 test('Defining', function() {
@@ -122,6 +124,10 @@ test('Readers', function() {
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
 });
 
+
+
+module('Views');
+
 test('No Model Binding', function() {
     var view = new ku.View;
     
@@ -131,4 +137,19 @@ test('No Model Binding', function() {
     view.render('test');
 
     ok(view.target.innerHTML === 'test', 'The view should render without a bound model.')
+});
+
+
+
+module('Http');
+
+asyncTest('Parsing Based on Request Header', function() {
+    var http = new ku.Http;
+
+    http.headers['Accept'] = 'application/json';
+
+    http.get('data/bob.json', function(r) {
+        ok(r.name === 'Bob Bobberson', 'JSON object should be properly parsed.');
+        start();
+    });
 });

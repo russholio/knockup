@@ -1032,11 +1032,15 @@
 
         suffix: '',
         
-        headers: ['Accept': 'application/json'],
+        headers: {},
 
         parsers: {
             'application/json': function(response) {
-                return JSON.parse(response);
+                try {
+                    return JSON.parse(response);
+                } catch (error) {
+                    throw 'Error parsing response "' + response + '" with message "' + error + '".';
+                }
             }
         },
 
@@ -1072,11 +1076,11 @@
             var self = this;
             var request = false;
             var factories = [
-                    function () { return new XMLHttpRequest() },
-                    function () { return new ActiveXObject('Msxml2.XMLHTTP') },
-                    function () { return new ActiveXObject('Msxml3.XMLHTTP') },
-                    function () { return new ActiveXObject('Microsoft.XMLHTTP') }
-                ];
+                function () { return new XMLHttpRequest() },
+                function () { return new ActiveXObject('Msxml2.XMLHTTP') },
+                function () { return new ActiveXObject('Msxml3.XMLHTTP') },
+                function () { return new ActiveXObject('Microsoft.XMLHTTP') }
+            ];
 
             for (var i = 0; i < factories.length; i++) {
                 try {
@@ -1087,14 +1091,14 @@
             }
 
             if (!request) {
-                return;
+                throw 'An XMLHttpRequest could not be generated.';
             }
 
             request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
             request.setRequestHeader('Accept', this.accept);
 
-            for (x in headers) {
-                request.setRequestHeader(x, this.headers[x]);
+            for (header in this.headers) {
+                request.setRequestHeader(header, this.headers[header]);
             }
 
             request.onreadystatechange = function () {
@@ -1103,35 +1107,26 @@
                 }
 
                 if (request.status !== 200 && request.status !== 304) {
-                    self.events.trigger('error');
-                    self.events.trigger('stop');
+                    self.events.trigger('error', [request]);
+                    self.events.trigger('stop', [request]);
                     return;
                 }
 
-                var response       = request.responseText;
-                var responseParsed = false;
-                
-                for  (x in request.getAllResponseHeaders) {
-                    if (x == 'Content-Type') {
-                        if (self.parsers[request.getResponseHeader(x)]) {
-                            responseParsed = true;
-                            response = self.parsers[request.getResponseHeader(x)](response);
-                        }
-                    }
-                }
+                var response = request.responseText,
+                    headers  = request.getAllResponseHeaders();
 
-                if (!responseParsed && self.headers['Accept']) {
-                    if (self.parsers[self.headers['Accept']]) {
-                        response = self.parsers[self.headers['Accept']](response);
-                    }
+                if (typeof headers['Content-Type'] === 'string' && typeof self.parsers[headers['Content-Type']] === 'function') {
+                    response = self.parsers[headers['Content-Type']](response);
+                } else if (typeof self.headers['Accept'] === 'string' && typeof self.parsers[self.headers['Accept']] === 'function') {
+                    response = self.parsers[self.headers['Accept']](response);
                 }
 
                 if (typeof fn === 'function') {
                     fn(response);
                 }
 
-                self.events.trigger('success');
-                self.events.trigger('stop');
+                self.events.trigger('success', [response, request]);
+                self.events.trigger('stop', [request]);
             }
 
             if (request.readyState === 4) {
@@ -1150,7 +1145,7 @@
                 request.setRequestHeader('Content-type','application/x-www-form-urlencoded')
             }
 
-            this.events.trigger('start');
+            this.events.trigger('start', [request]);
             request.send(data);
 
             return this;
