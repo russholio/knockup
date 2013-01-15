@@ -768,39 +768,41 @@
                 var route  = this.routes[i],
                     params = route.query(request);
 
-                if (typeof params.length === 'number') {
-                    if (this.events.trigger('exit', [this]) === false) {
-                        return this;
-                    }
+                if (typeof params.length !== 'number') {
+                    continue;
+                }
 
-                    if (this.route && this.events.trigger('exit.' + i, [this, this.route]) === false) {
-                        return this;
-                    }
-
-                    if (this.events.trigger('enter', [this]) === false) {
-                        return this;
-                    }
-
-                    if (this.events.trigger('enter.' + i, [this, route]) === false) {
-                        return this;
-                    }
-
-                    var model = route.controller.apply(route.controller, params);
-
-                    if (model && model.constructor === Object) {
-                        model = new (ku.model(model));
-                    }
-
-                    if (model !== false) {
-                        this.view.render(route.view, model);
-                    }
-
-                    this.route = route;
-
-                    this.state.previous = request;
-
+                if (this.events.trigger('exit', [this]) === false) {
                     return this;
                 }
+
+                if (this.route && this.events.trigger('exit.' + i, [this, this.route]) === false) {
+                    return this;
+                }
+
+                if (this.events.trigger('enter', [this]) === false) {
+                    return this;
+                }
+
+                if (this.events.trigger('enter.' + i, [this, route]) === false) {
+                    return this;
+                }
+
+                var model = route.controller.apply(route.controller, params);
+
+                if (model && model.constructor === Object) {
+                    model = new (ku.model(model));
+                }
+
+                if (model !== false) {
+                    this.view.render(route.view, model);
+                }
+
+                this.route = route;
+
+                this.state.previous = request;
+
+                return this;
             }
 
             this.route = false;
@@ -948,9 +950,11 @@
 
         data: function(state) {
             var state = state || this.get();
+
             if (typeof this.states[state] === 'undefined') {
                 return null;
             }
+
             return this.states[state];
         }
     };
@@ -1186,13 +1190,18 @@
 
         target: null,
 
+        idPrefix: 'ku-view-',
+        
+        idSuffix: '',
+
         render: function(name, model) {
-            var self = this;
+            var self = this,
+                id   = this.idPrefix + name + this.idSuffix;
 
             if (this.cache[name]) {
                 this.renderer(this.cache[name], model);
-            } else if (document.getElementById(name)) {
-                this.renderer(this.cache[name] = document.getElementById(name).innerHTML, model);
+            } else if (document.getElementById(id)) {
+                this.renderer(this.cache[name] = document.getElementById(id).innerHTML, model);
             } else if (this.http) {
                 this.http.get(name, function(html) {
                     self.renderer(self.cache[name] = html, model);

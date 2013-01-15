@@ -2,14 +2,14 @@ module('Attribute Bindings');
 
 test('Model', function() {
     var div = document.createElement('div');
-    div.setAttribute('data-ku-model', 'model.model');
+    div.setAttribute('data-ku-model', 'test.model');
 
     var span = document.createElement('span');
     span.setAttribute('data-bind', 'text: name');
 
     div.appendChild(span);
 
-    ku.set('model.model', {
+    ku.set('test.model', {
         name: 'test'
     });
 
@@ -20,36 +20,36 @@ test('Model', function() {
 
 asyncTest('Router', function() {
     var div = document.createElement('div');
-    div.setAttribute('data-ku-router', 'router.router');
+    div.setAttribute('data-ku-router', 'test.router');
 
-    ku.set('router.router', new ku.Router);
-    ku.get('router.router').set('index', function() {
+    var router = new ku.Router;
+    router.view.http.events.on('success', function() {
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+    router.set('index', function() {
         return {
             name: 'test'
         };
     });
 
-    ku.get('router.router').view.http.events.on('success', function() {
-        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
-        start();
-    });
-
+    ku.set('test.router', router);
     ku.run(div);
-    ku.get('router.router').go('index');
+    ku.get('test.router').go('index');
 });
 
 asyncTest('View', function() {
     var div = document.createElement('div');
-    div.setAttribute('data-ku-view', 'view.view');
+    div.setAttribute('data-ku-view', 'test.view');
     div.setAttribute('data-ku-path', 'index');
-    div.setAttribute('data-ku-model', 'view.model');
+    div.setAttribute('data-ku-model', 'test.model');
 
-    ku.set('view.view', new ku.View);
-    ku.set('view.model', {
+    ku.set('test.view', new ku.View);
+    ku.set('test.model', {
         name: 'test'
     });
 
-    ku.get('view.view').http.events.on('success', function() {
+    ku.get('test.view').http.events.on('success', function() {
         ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
         start();
     });

@@ -1,0 +1,8 @@
+{
+    "devDependencies": {
+        "grunt": "latest"
+    },
+    "scripts": {
+        "test": "trunt travis --verbose"
+    }
+}
