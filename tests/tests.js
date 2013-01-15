@@ -153,3 +153,56 @@ asyncTest('Parsing Based on Request Header', function() {
         start();
     });
 });
+
+test('Overloading Data and Callback Parameters', function() {
+    var http = new ku.Http;
+
+    http.request = function(url, data, type, callback) {
+        callback({
+            url: url,
+            data: data,
+            type: type,
+            callback: callback
+        });
+    };
+
+    http.delete('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.delete('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.get('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.get('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.head('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.head('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.options('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.options('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+});

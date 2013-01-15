@@ -1044,20 +1044,20 @@
             }
         },
 
-        delete: function(url, fn) {
-            return this.request(url, {}, 'delete', fn);
+        delete: function(url, data, fn) {
+            return this.request(url, data || {}, 'delete', fn || data);
         },
 
-        get: function(url, fn) {
-            return this.request(url, {}, 'get', fn);
+        get: function(url, data, fn) {
+            return this.request(url, data || {}, 'get', fn || data);
         },
 
-        head: function(url, fn) {
-            return this.request(url, {}, 'head', fn);
+        head: function(url, data, fn) {
+            return this.request(url, data || {}, 'head', fn || data);
         },
 
-        options: function(url, fn) {
-            return this.request(url, {}, 'options', fn);
+        options: function(url, data, fn) {
+            return this.request(url, data || {}, 'options', fn || data);
         },
 
         patch: function(url, data, fn) {
@@ -1073,26 +1073,8 @@
         },
 
         request: function(url, data, type, fn) {
-            var self = this;
-            var request = false;
-            var factories = [
-                function () { return new XMLHttpRequest() },
-                function () { return new ActiveXObject('Msxml2.XMLHTTP') },
-                function () { return new ActiveXObject('Msxml3.XMLHTTP') },
-                function () { return new ActiveXObject('Microsoft.XMLHTTP') }
-            ];
-
-            for (var i = 0; i < factories.length; i++) {
-                try {
-                    request = factories[i]();
-                } catch (e) {
-                    continue;
-                }
-            }
-
-            if (!request) {
-                throw 'An XMLHttpRequest could not be generated.';
-            }
+            var self    = this;
+                request = this.createRequestObject();
 
             request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
             request.setRequestHeader('Accept', this.accept);
@@ -1122,7 +1104,7 @@
                 }
 
                 if (typeof fn === 'function') {
-                    fn(response);
+                    fn(response, request);
                 }
 
                 self.events.trigger('success', [response, request]);
@@ -1142,7 +1124,7 @@
             }
 
             if (data) {
-                request.setRequestHeader('Content-type','application/x-www-form-urlencoded')
+                request.setRequestHeader('Content-Type','application/x-www-form-urlencoded')
             }
 
             this.events.trigger('start', [request]);
@@ -1160,6 +1142,30 @@
             }
 
             return str.join('&');
+        },
+
+        createRequestObject: function() {
+            var request   = false;
+                factories = [
+                    function () { return new XMLHttpRequest() },
+                    function () { return new ActiveXObject('Msxml2.XMLHTTP') },
+                    function () { return new ActiveXObject('Msxml3.XMLHTTP') },
+                    function () { return new ActiveXObject('Microsoft.XMLHTTP') }
+                ];
+
+            for (var i = 0; i < factories.length; i++) {
+                try {
+                    request = factories[i]();
+                } catch (e) {
+                    continue;
+                }
+            }
+
+            if (!request) {
+                throw 'An XMLHttpRequest could not be generated.';
+            }
+
+            return request;
         }
     };
 
