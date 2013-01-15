@@ -6,6 +6,6 @@
         "grunt": "latest"
     },
     "scripts": {
-        "test": "trunt travis --verbose"
+        "test": "grunt travis --verbose"
     }
 }
