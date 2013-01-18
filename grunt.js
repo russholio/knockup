@@ -41,7 +41,6 @@ module.exports = function(grunt) {
 
     grunt.registerTask('travis', 'lint server qunit');
     grunt.registerTask('build', 'concat wrap min travis');
-    grunt.registerTask('test', 'pre-commit');
 
     grunt.registerMultiTask('wrap', 'Wraps the "file" with "wrapper" using the "placeholder".', function() {
         var wrapper     = fs.readFileSync('./' + this.data.wrapper, 'UTF-8') || this.data.wrapper,
