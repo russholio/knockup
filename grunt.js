@@ -42,11 +42,10 @@ module.exports = function(grunt) {
     grunt.registerTask('test', 'pre-commit');
 
     grunt.registerMultiTask('wrap', 'Wraps the "file" with "wrapper" using the "placeholder".', function() {
-        var file        = fs.readFileSync('./' + this.data.file, 'UTF-8'),
-            wrapper     = fs.readFileSync('./' + this.data.wrapper, 'UTF-8') || this.data.wrapper,
+        var wrapper     = fs.readFileSync('./' + this.data.wrapper, 'UTF-8') || this.data.wrapper,
             placeholder = this.data.placeholder || '{content}',
-            content     = wrapper.replace(placeholder, file);
+            content     = wrapper.replace(placeholder, fs.readFileSync('./' + this.data.file, 'UTF-8'));
         
-        fs.writeFileSync(file, content);
+        fs.writeFileSync(this.data.file, content);
     });
 };
