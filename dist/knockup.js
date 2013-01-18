@@ -1,6 +1,6 @@
 !function(factory) {
     if (typeof require === 'function' && typeof exports === 'object' && typeof module === 'object') {
-        factory(require('knockout'), module['exports'] || exports);
+        factory(require('knockout'), module.exports || exports);
     } else if (typeof define === 'function' && define.amd) {
         define(['knockout', 'exports'], factory);
     } else {
@@ -37,19 +37,23 @@ ku.bindings = {
     },
 
     view: function(element, value) {
-        var path  = this.attr(element, 'path');
-        var model = this.get(this.attr(element, 'model'));
+        var path  = this.attr(element, 'path'),
+            model = this.get(this.attr(element, 'model')),
+            view;
 
         if (path) {
             view = this.get(value);
         } else {
-            view = new ku.View;
+            var prefix = this.attr(element, 'prefix'),
+                suffix = this.attr(element, 'suffix');
 
-            if (prefix = this.attr(element, 'prefix')) {
+            view = new ku.View();
+
+            if (prefix) {
                 view.http.prefix = prefix;
             }
 
-            if (suffix = this.attr(element, 'suffix')) {
+            if (suffix) {
                 view.http.suffix = suffix;
             }
         }
@@ -104,7 +108,7 @@ ku.collection = function(model) {
         };
 
         this.remove = function(at) {
-            var at = typeof at === 'number' ? at : this.index(at);
+            at = typeof at === 'number' ? at : this.index(at);
 
             if (this.has(at)) {
                 Array.prototype.splice.call(this, at, 1);
@@ -120,7 +124,7 @@ ku.collection = function(model) {
             this.observer.notifySubscribers();
             
             return this;
-        }
+        };
 
         this.prepend = function(item) {
             return this.insert(0, item);
@@ -155,25 +159,25 @@ ku.collection = function(model) {
             return index;
         };
 
-        this.import = function(data) {
-            var self = this;
+        this.from = function(data) {
+            var that = this;
 
             if (ku.isCollection(data)) {
-                data = data.export();
+                data = data.raw();
             }
 
             each(data, function(i, model) {
-                self.append(model);
+                that.append(model);
             });
 
             return this;
         };
 
-        this.export = function() {
+        this.raw = function() {
             var out = [];
 
             this.each(function(i, v) {
-                out.push(v.export());
+                out.push(v.raw());
             });
 
             return out;
@@ -187,29 +191,29 @@ ku.collection = function(model) {
         };
 
         this.find = function(query, limit, page) {
-            var collection = new this.$self.Model.Collection;
+            var collection = new this.$self.Model.Collection();
 
             collection.$parent = this.$parent;
 
             if (ku.isModel(query)) {
-                query = query.export();
+                query = query.raw();
             }
 
             if (typeof query === 'object') {
                 query = (function(query) {
                     return function() {
-                        var self = this,
+                        var that = this,
                             ret  = true;
 
                         each(query, function(k, v) {
-                            if (typeof self[k] === 'undefined' || self[k]() !== v) {
+                            if (typeof that[k] === 'undefined' || that[k]() !== v) {
                                 ret = false;
                                 return false;
                             }
                         });
 
                         return ret;
-                    }
+                    };
                 })(query);
             }
 
@@ -238,7 +242,7 @@ ku.collection = function(model) {
             return this.find(query, 1).first();
         };
 
-        this.import(data);
+        this.from(data);
     };
 
     Collection.Model = model;
@@ -293,7 +297,7 @@ ku.Event.prototype = {
             var stack = [];
 
             for (var i in this.stack) {
-                if (!this.stack[i] === cb) {
+                if (this.stack[i] !== cb) {
                     stack.push(this.stack[i]);
                 }
             }
@@ -322,7 +326,7 @@ ku.Events = function() {
 ku.Events.prototype = {
     on: function(name, handler) {
         if (typeof this.events[name] === 'undefined') {
-            this.events[name] = new ku.Event;
+            this.events[name] = new ku.Event();
         }
 
         this.events[name].bind(handler);
@@ -352,7 +356,7 @@ ku.Events.prototype = {
     }
 };
 ku.Http = function() {
-    this.events = new ku.Events;
+    this.events = new ku.Events();
     return this;
 };
 
@@ -373,7 +377,7 @@ ku.Http.prototype = {
         }
     },
 
-    delete: function(url, data, fn) {
+    'delete': function(url, data, fn) {
         return this.request(url, data || {}, 'delete', fn || data);
     },
 
@@ -408,7 +412,7 @@ ku.Http.prototype = {
         request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
         request.setRequestHeader('Accept', this.accept);
 
-        for (header in this.headers) {
+        for (var header in this.headers) {
             request.setRequestHeader(header, this.headers[header]);
         }
 
@@ -428,8 +432,8 @@ ku.Http.prototype = {
 
             if (typeof headers['Content-Type'] === 'string' && typeof self.parsers[headers['Content-Type']] === 'function') {
                 response = self.parsers[headers['Content-Type']](response);
-            } else if (typeof self.headers['Accept'] === 'string' && typeof self.parsers[self.headers['Accept']] === 'function') {
-                response = self.parsers[self.headers['Accept']](response);
+            } else if (typeof self.headers.Accept === 'string' && typeof self.parsers[self.headers.Accept] === 'function') {
+                response = self.parsers[self.headers.Accept](response);
             }
 
             if (typeof fn === 'function') {
@@ -438,14 +442,14 @@ ku.Http.prototype = {
 
             self.events.trigger('success', [response, request]);
             self.events.trigger('stop', [request]);
-        }
+        };
 
         if (request.readyState === 4) {
             return;
         }
 
         if (ku.isModel(data)) {
-            data = data.export();
+            data = data.raw();
         }
 
         if (typeof data === 'object') {
@@ -453,7 +457,7 @@ ku.Http.prototype = {
         }
 
         if (data) {
-            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded')
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         }
 
         this.events.trigger('start', [request]);
@@ -476,10 +480,10 @@ ku.Http.prototype = {
     createRequestObject: function() {
         var request   = false;
             factories = [
-                function () { return new XMLHttpRequest() },
-                function () { return new ActiveXObject('Msxml2.XMLHTTP') },
-                function () { return new ActiveXObject('Msxml3.XMLHTTP') },
-                function () { return new ActiveXObject('Microsoft.XMLHTTP') }
+                function () { return new XMLHttpRequest(); },
+                function () { return new ActiveXObject('Msxml2.XMLHTTP'); },
+                function () { return new ActiveXObject('Msxml3.XMLHTTP'); },
+                function () { return new ActiveXObject('Microsoft.XMLHTTP'); }
             ];
 
         for (var i = 0; i < factories.length; i++) {
@@ -514,7 +518,7 @@ function fnCompare(fn, str) {
 }
 
 function each(items, fn) {
-    var items = items || [];
+    items = items || [];
 
     if (typeof items === 'string') {
         items = [items];
@@ -527,13 +531,13 @@ function each(items, fn) {
             }
         }
     } else {
-        for (var i in items) {
-            if (fn(i, items[i]) === false) {
+        for (var x in items) {
+            if (fn(x, items[x]) === false) {
                 return;
             }
         }
     }
-};
+}
 
 function generateObserver() {
     return ko.computed({
@@ -541,7 +545,7 @@ function generateObserver() {
             return this;
         },
         write: function(value) {
-            this.import(value);
+            this.from(value);
         },
         owner: this
     });
@@ -669,9 +673,9 @@ ku.model = function(define) {
 
         this.observer = generateObserver.call(this);
 
-        this.import = function(obj) {
+        this.from = function(obj) {
             if (ku.isModel(obj)) {
-                obj = obj.export();
+                obj = obj.raw();
             }
 
             each(obj, function(name, value) {
@@ -685,8 +689,8 @@ ku.model = function(define) {
             return this;
         };
 
-        this.export = function() {
-            var out = {}
+        this.raw = function() {
+            var out = {};
 
             each(properties, function(i, v) {
                 out[i] = self[i]();
@@ -697,14 +701,14 @@ ku.model = function(define) {
             });
 
             each(relations, function(i, v) {
-                out[i] = self[i]().export();
+                out[i] = self[i]().raw();
             });
 
             return out;
         };
 
         this.clone = function() {
-            var clone = new Model(this.export());
+            var clone = new Model(this.raw());
 
             clone.$parent = this.$parent;
 
@@ -721,7 +725,7 @@ ku.model = function(define) {
 
         each(define, function(i, v) {
             if (ku.isModel(v) || ku.isCollection(v)) {
-                var obj = new v;
+                var obj = new v();
 
                 self[i] = obj.observer;
 
@@ -775,7 +779,7 @@ ku.model = function(define) {
             self[name] = ko.computed(computed);
         });
 
-        this.import(data);
+        this.from(data);
 
         if (typeof this.init === 'function') {
             this.init();
@@ -813,10 +817,10 @@ ku.model = function(define) {
 var bound = [];
 
 ku.Router = function() {
-    this.events = new ku.Events;
+    this.events = new ku.Events();
     this.routes = {};
-    this.state  = new ku.State;
-    this.view   = new ku.View;
+    this.state  = new ku.State();
+    this.view   = new ku.View();
 
     return this;
 };
@@ -914,7 +918,7 @@ ku.Router.prototype = {
             var model = route.controller.apply(route.controller, params);
 
             if (model && model.constructor === Object) {
-                model = new (ku.model(model));
+                model = new (ku.model(model))();
             }
 
             if (model !== false) {
@@ -978,7 +982,7 @@ ku.Route.prototype = {
         var format = this.format;
 
         for (var name in params) {
-            format = format.replace(new RegExp('\:' + name, 'g'), params[name]);
+            format = format.replace(new RegExp('\\:' + name, 'g'), params[name]);
         }
 
         return format;
@@ -1042,7 +1046,7 @@ ku.State.stop = function() {
     isStarted = false;
 
     return State;
-}
+};
 
 ku.State.prototype = {
     previous: false,
@@ -1072,7 +1076,7 @@ ku.State.prototype = {
     },
 
     data: function(state) {
-        var state = state || this.get();
+        state = state || this.get();
 
         if (typeof this.states[state] === 'undefined') {
             return null;
@@ -1107,37 +1111,35 @@ function trigger(e) {
 }
 
 function updateHash(uri, scroll) {
-    if (!scroll) {
-        var id    = uri.replace(/^#/, '');
-        var node  = document.getElementById(id);
-        var x     = window.pageXOffset ? window.pageXOffset : document.body.scrollLeft;
-        var y     = window.pageYOffset ? window.pageYOffset : document.body.scrollTop;
-        var dummy = document.createElement('div');
-
-        if (node) {
-            node.id = '';
-        }
-
-        dummy.id             = id || '_';
-        dummy.style.position = 'absolute';
-        dummy.style.width    = 0;
-        dummy.style.height   = 0;
-        dummy.style.left     = x + 'px';
-        dummy.style.top      = y + 'px';
-        dummy.style.padding  = 0;
-        dummy.style.margin   = 0;
-
-        document.body.appendChild(dummy);
+    if (scroll) {
+        return;
     }
 
+    var id    = uri.replace(/^#/, '');
+    var node  = document.getElementById(id);
+    var x     = window.pageXOffset ? window.pageXOffset : document.body.scrollLeft;
+    var y     = window.pageYOffset ? window.pageYOffset : document.body.scrollTop;
+    var dummy = document.createElement('div');
+
+    if (node) {
+        node.id = '';
+    }
+
+    dummy.id             = id || '_';
+    dummy.style.position = 'absolute';
+    dummy.style.width    = 0;
+    dummy.style.height   = 0;
+    dummy.style.left     = x + 'px';
+    dummy.style.top      = y + 'px';
+    dummy.style.padding  = 0;
+    dummy.style.margin   = 0;
+
+    document.body.appendChild(dummy);
     window.location.hash = '#' + dummy.id;
+    document.body.removeChild(dummy);
 
-    if (!scroll) {
-        document.body.removeChild(dummy);
-
-        if (node) {
-            node.id = id;
-        }
+    if (node) {
+        node.id = id;
     }
 }
 
@@ -1148,7 +1150,7 @@ function dispatch() {
 }
 ku.View = function() {
     this.cache       = {};
-    this.http        = new ku.Http;
+    this.http        = new ku.Http();
     this.http.prefix = 'views/';
     this.http.suffix = '.html';
     this.http.accept = 'text/html';
@@ -1190,9 +1192,9 @@ ku.View.prototype = {
         }
 
         if (typeof target === 'string') {
-            var target = document.getElementById(target);
+            target = document.getElementById(target);
         } else if (typeof target === 'function') {
-            var target = target();
+            target = target();
         }
 
         target.innerHTML = view;

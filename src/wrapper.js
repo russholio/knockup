@@ -1,6 +1,6 @@
 !function(factory) {
     if (typeof require === 'function' && typeof exports === 'object' && typeof module === 'object') {
-        factory(require('knockout'), module['exports'] || exports);
+        factory(require('knockout'), module.exports || exports);
     } else if (typeof define === 'function' && define.amd) {
         define(['knockout', 'exports'], factory);
     } else {

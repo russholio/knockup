@@ -23,19 +23,23 @@ ku.bindings = {
     },
 
     view: function(element, value) {
-        var path  = this.attr(element, 'path');
-        var model = this.get(this.attr(element, 'model'));
+        var path  = this.attr(element, 'path'),
+            model = this.get(this.attr(element, 'model')),
+            view;
 
         if (path) {
             view = this.get(value);
         } else {
-            view = new ku.View;
+            var prefix = this.attr(element, 'prefix'),
+                suffix = this.attr(element, 'suffix');
 
-            if (prefix = this.attr(element, 'prefix')) {
+            view = new ku.View();
+
+            if (prefix) {
                 view.http.prefix = prefix;
             }
 
-            if (suffix = this.attr(element, 'suffix')) {
+            if (suffix) {
                 view.http.suffix = suffix;
             }
         }

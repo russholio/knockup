@@ -1,10 +1,10 @@
 var bound = [];
 
 ku.Router = function() {
-    this.events = new ku.Events;
+    this.events = new ku.Events();
     this.routes = {};
-    this.state  = new ku.State;
-    this.view   = new ku.View;
+    this.state  = new ku.State();
+    this.view   = new ku.View();
 
     return this;
 };
@@ -102,7 +102,7 @@ ku.Router.prototype = {
             var model = route.controller.apply(route.controller, params);
 
             if (model && model.constructor === Object) {
-                model = new (ku.model(model));
+                model = new (ku.model(model))();
             }
 
             if (model !== false) {
@@ -166,7 +166,7 @@ ku.Route.prototype = {
         var format = this.format;
 
         for (var name in params) {
-            format = format.replace(new RegExp('\:' + name, 'g'), params[name]);
+            format = format.replace(new RegExp('\\:' + name, 'g'), params[name]);
         }
 
         return format;
@@ -230,7 +230,7 @@ ku.State.stop = function() {
     isStarted = false;
 
     return State;
-}
+};
 
 ku.State.prototype = {
     previous: false,
@@ -260,7 +260,7 @@ ku.State.prototype = {
     },
 
     data: function(state) {
-        var state = state || this.get();
+        state = state || this.get();
 
         if (typeof this.states[state] === 'undefined') {
             return null;
@@ -295,37 +295,35 @@ function trigger(e) {
 }
 
 function updateHash(uri, scroll) {
-    if (!scroll) {
-        var id    = uri.replace(/^#/, '');
-        var node  = document.getElementById(id);
-        var x     = window.pageXOffset ? window.pageXOffset : document.body.scrollLeft;
-        var y     = window.pageYOffset ? window.pageYOffset : document.body.scrollTop;
-        var dummy = document.createElement('div');
-
-        if (node) {
-            node.id = '';
-        }
-
-        dummy.id             = id || '_';
-        dummy.style.position = 'absolute';
-        dummy.style.width    = 0;
-        dummy.style.height   = 0;
-        dummy.style.left     = x + 'px';
-        dummy.style.top      = y + 'px';
-        dummy.style.padding  = 0;
-        dummy.style.margin   = 0;
-
-        document.body.appendChild(dummy);
+    if (scroll) {
+        return;
     }
 
+    var id    = uri.replace(/^#/, '');
+    var node  = document.getElementById(id);
+    var x     = window.pageXOffset ? window.pageXOffset : document.body.scrollLeft;
+    var y     = window.pageYOffset ? window.pageYOffset : document.body.scrollTop;
+    var dummy = document.createElement('div');
+
+    if (node) {
+        node.id = '';
+    }
+
+    dummy.id             = id || '_';
+    dummy.style.position = 'absolute';
+    dummy.style.width    = 0;
+    dummy.style.height   = 0;
+    dummy.style.left     = x + 'px';
+    dummy.style.top      = y + 'px';
+    dummy.style.padding  = 0;
+    dummy.style.margin   = 0;
+
+    document.body.appendChild(dummy);
     window.location.hash = '#' + dummy.id;
+    document.body.removeChild(dummy);
 
-    if (!scroll) {
-        document.body.removeChild(dummy);
-
-        if (node) {
-            node.id = id;
-        }
+    if (node) {
+        node.id = id;
     }
 }
 

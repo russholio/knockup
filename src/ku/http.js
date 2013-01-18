@@ -1,5 +1,5 @@
 ku.Http = function() {
-    this.events = new ku.Events;
+    this.events = new ku.Events();
     return this;
 };
 
@@ -20,7 +20,7 @@ ku.Http.prototype = {
         }
     },
 
-    delete: function(url, data, fn) {
+    'delete': function(url, data, fn) {
         return this.request(url, data || {}, 'delete', fn || data);
     },
 
@@ -55,7 +55,7 @@ ku.Http.prototype = {
         request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
         request.setRequestHeader('Accept', this.accept);
 
-        for (header in this.headers) {
+        for (var header in this.headers) {
             request.setRequestHeader(header, this.headers[header]);
         }
 
@@ -75,8 +75,8 @@ ku.Http.prototype = {
 
             if (typeof headers['Content-Type'] === 'string' && typeof self.parsers[headers['Content-Type']] === 'function') {
                 response = self.parsers[headers['Content-Type']](response);
-            } else if (typeof self.headers['Accept'] === 'string' && typeof self.parsers[self.headers['Accept']] === 'function') {
-                response = self.parsers[self.headers['Accept']](response);
+            } else if (typeof self.headers.Accept === 'string' && typeof self.parsers[self.headers.Accept] === 'function') {
+                response = self.parsers[self.headers.Accept](response);
             }
 
             if (typeof fn === 'function') {
@@ -85,14 +85,14 @@ ku.Http.prototype = {
 
             self.events.trigger('success', [response, request]);
             self.events.trigger('stop', [request]);
-        }
+        };
 
         if (request.readyState === 4) {
             return;
         }
 
         if (ku.isModel(data)) {
-            data = data.export();
+            data = data.raw();
         }
 
         if (typeof data === 'object') {
@@ -100,7 +100,7 @@ ku.Http.prototype = {
         }
 
         if (data) {
-            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded')
+            request.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
         }
 
         this.events.trigger('start', [request]);
@@ -123,10 +123,10 @@ ku.Http.prototype = {
     createRequestObject: function() {
         var request   = false;
             factories = [
-                function () { return new XMLHttpRequest() },
-                function () { return new ActiveXObject('Msxml2.XMLHTTP') },
-                function () { return new ActiveXObject('Msxml3.XMLHTTP') },
-                function () { return new ActiveXObject('Microsoft.XMLHTTP') }
+                function () { return new XMLHttpRequest(); },
+                function () { return new ActiveXObject('Msxml2.XMLHTTP'); },
+                function () { return new ActiveXObject('Msxml3.XMLHTTP'); },
+                function () { return new ActiveXObject('Microsoft.XMLHTTP'); }
             ];
 
         for (var i = 0; i < factories.length; i++) {

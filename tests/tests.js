@@ -22,7 +22,7 @@ asyncTest('Router', function() {
     var div = document.createElement('div');
     div.setAttribute('data-ku-router', 'test.router');
 
-    var router = new ku.Router;
+    var router = new ku.Router();
     router.view.http.events.on('success', function() {
         ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
         start();
@@ -44,7 +44,7 @@ asyncTest('View', function() {
     div.setAttribute('data-ku-path', 'index');
     div.setAttribute('data-ku-model', 'test.model');
 
-    ku.set('test.view', new ku.View);
+    ku.set('test.view', new ku.View());
     ku.set('test.model', {
         name: 'test'
     });
@@ -102,7 +102,7 @@ test('Relationships', function() {
         { name: 'Lizard' }
     ]);
 
-    var exported = user.export();
+    var exported = user.raw();
 
     ok(exported.bestFriend.name === user.bestFriend().name(), 'Dog should be the best friend.');
     ok(exported.friends[0].name === user.friends().first().name(), 'Cat should be 2nd best.');
@@ -119,7 +119,7 @@ test('Readers', function() {
     });
 
     var user     = new User().forename('Barbara').surname('Barberson');
-    var exported = user.export();
+    var exported = user.raw();
 
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
 });
@@ -129,14 +129,14 @@ test('Readers', function() {
 module('Views');
 
 test('No Model Binding', function() {
-    var view = new ku.View;
+    var view = new ku.View();
     
     view.target = document.createElement('div');
     view.cache.test = 'test';
 
     view.render('test');
 
-    ok(view.target.innerHTML === 'test', 'The view should render without a bound model.')
+    ok(view.target.innerHTML === 'test', 'The view should render without a bound model.');
 });
 
 
@@ -144,9 +144,9 @@ test('No Model Binding', function() {
 module('Http');
 
 asyncTest('Parsing Based on Request Header', function() {
-    var http = new ku.Http;
+    var http = new ku.Http();
 
-    http.headers['Accept'] = 'application/json';
+    http.headers.Accept = 'application/json';
 
     http.get('data/bob.json', function(r) {
         ok(r.name === 'Bob Bobberson', 'JSON object should be properly parsed.');
@@ -155,7 +155,7 @@ asyncTest('Parsing Based on Request Header', function() {
 });
 
 test('Overloading Data and Callback Parameters', function() {
-    var http = new ku.Http;
+    var http = new ku.Http();
 
     http.request = function(url, data, type, callback) {
         callback({
@@ -166,11 +166,11 @@ test('Overloading Data and Callback Parameters', function() {
         });
     };
 
-    http.delete('test', function(r) {
+    http['delete']('test', function(r) {
         ok(!r.data.arg);
     });
 
-    http.delete('test', {
+    http['delete']('test', {
         arg: 'yes'
     }, function(r) {
         ok(r.data.arg === 'yes');

@@ -44,7 +44,7 @@ ku.collection = function(model) {
         };
 
         this.remove = function(at) {
-            var at = typeof at === 'number' ? at : this.index(at);
+            at = typeof at === 'number' ? at : this.index(at);
 
             if (this.has(at)) {
                 Array.prototype.splice.call(this, at, 1);
@@ -60,7 +60,7 @@ ku.collection = function(model) {
             this.observer.notifySubscribers();
             
             return this;
-        }
+        };
 
         this.prepend = function(item) {
             return this.insert(0, item);
@@ -95,25 +95,25 @@ ku.collection = function(model) {
             return index;
         };
 
-        this.import = function(data) {
-            var self = this;
+        this.from = function(data) {
+            var that = this;
 
             if (ku.isCollection(data)) {
-                data = data.export();
+                data = data.raw();
             }
 
             each(data, function(i, model) {
-                self.append(model);
+                that.append(model);
             });
 
             return this;
         };
 
-        this.export = function() {
+        this.raw = function() {
             var out = [];
 
             this.each(function(i, v) {
-                out.push(v.export());
+                out.push(v.raw());
             });
 
             return out;
@@ -127,29 +127,29 @@ ku.collection = function(model) {
         };
 
         this.find = function(query, limit, page) {
-            var collection = new this.$self.Model.Collection;
+            var collection = new this.$self.Model.Collection();
 
             collection.$parent = this.$parent;
 
             if (ku.isModel(query)) {
-                query = query.export();
+                query = query.raw();
             }
 
             if (typeof query === 'object') {
                 query = (function(query) {
                     return function() {
-                        var self = this,
+                        var that = this,
                             ret  = true;
 
                         each(query, function(k, v) {
-                            if (typeof self[k] === 'undefined' || self[k]() !== v) {
+                            if (typeof that[k] === 'undefined' || that[k]() !== v) {
                                 ret = false;
                                 return false;
                             }
                         });
 
                         return ret;
-                    }
+                    };
                 })(query);
             }
 
@@ -178,7 +178,7 @@ ku.collection = function(model) {
             return this.find(query, 1).first();
         };
 
-        this.import(data);
+        this.from(data);
     };
 
     Collection.Model = model;

@@ -1,6 +1,6 @@
 ku.View = function() {
     this.cache       = {};
-    this.http        = new ku.Http;
+    this.http        = new ku.Http();
     this.http.prefix = 'views/';
     this.http.suffix = '.html';
     this.http.accept = 'text/html';
@@ -42,9 +42,9 @@ ku.View.prototype = {
         }
 
         if (typeof target === 'string') {
-            var target = document.getElementById(target);
+            target = document.getElementById(target);
         } else if (typeof target === 'function') {
-            var target = target();
+            target = target();
         }
 
         target.innerHTML = view;

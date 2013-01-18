@@ -6,20 +6,22 @@ module.exports = function(grunt) {
             dist: {
                 src: 'src/ku/*.js',
                 dest: 'dist/knockup.js'
-            },
-            min: {
-                src: 'dist/knockup.js',
-                dest: 'dist/knockup.min.js'
             }
         },
         lint: {
             files: [
-                'src/*.js',
+                'src/ku/*.js',
                 'tests/*.js'
             ]
         },
         meta: {
             banner: '/*! <%= pkg.name %> <%= pkg.version %> <%= grunt.template.today("yyyy-mm-dd") %> */'
+        },
+        min: {
+            dist: {
+                src: 'dist/knockup.js',
+                dest: 'dest/knockup.min.js'
+            }
         },
         pkg: '<json:package.json>',
         qunit: {
@@ -38,7 +40,7 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('travis', 'lint server qunit');
-    grunt.registerTask('pre-commit', 'concat wrap min travis');
+    grunt.registerTask('build', 'concat wrap min travis');
     grunt.registerTask('test', 'pre-commit');
 
     grunt.registerMultiTask('wrap', 'Wraps the "file" with "wrapper" using the "placeholder".', function() {

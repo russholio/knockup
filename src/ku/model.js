@@ -8,9 +8,9 @@ ku.model = function(define) {
 
         this.observer = generateObserver.call(this);
 
-        this.import = function(obj) {
+        this.from = function(obj) {
             if (ku.isModel(obj)) {
-                obj = obj.export();
+                obj = obj.raw();
             }
 
             each(obj, function(name, value) {
@@ -24,8 +24,8 @@ ku.model = function(define) {
             return this;
         };
 
-        this.export = function() {
-            var out = {}
+        this.raw = function() {
+            var out = {};
 
             each(properties, function(i, v) {
                 out[i] = self[i]();
@@ -36,14 +36,14 @@ ku.model = function(define) {
             });
 
             each(relations, function(i, v) {
-                out[i] = self[i]().export();
+                out[i] = self[i]().raw();
             });
 
             return out;
         };
 
         this.clone = function() {
-            var clone = new Model(this.export());
+            var clone = new Model(this.raw());
 
             clone.$parent = this.$parent;
 
@@ -60,7 +60,7 @@ ku.model = function(define) {
 
         each(define, function(i, v) {
             if (ku.isModel(v) || ku.isCollection(v)) {
-                var obj = new v;
+                var obj = new v();
 
                 self[i] = obj.observer;
 
@@ -114,7 +114,7 @@ ku.model = function(define) {
             self[name] = ko.computed(computed);
         });
 
-        this.import(data);
+        this.from(data);
 
         if (typeof this.init === 'function') {
             this.init();

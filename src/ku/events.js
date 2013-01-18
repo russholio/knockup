@@ -6,7 +6,7 @@ ku.Events = function() {
 ku.Events.prototype = {
     on: function(name, handler) {
         if (typeof this.events[name] === 'undefined') {
-            this.events[name] = new ku.Event;
+            this.events[name] = new ku.Event();
         }
 
         this.events[name].bind(handler);

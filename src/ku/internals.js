@@ -15,7 +15,7 @@ function fnCompare(fn, str) {
 }
 
 function each(items, fn) {
-    var items = items || [];
+    items = items || [];
 
     if (typeof items === 'string') {
         items = [items];
@@ -28,13 +28,13 @@ function each(items, fn) {
             }
         }
     } else {
-        for (var i in items) {
-            if (fn(i, items[i]) === false) {
+        for (var x in items) {
+            if (fn(x, items[x]) === false) {
                 return;
             }
         }
     }
-};
+}
 
 function generateObserver() {
     return ko.computed({
@@ -42,7 +42,7 @@ function generateObserver() {
             return this;
         },
         write: function(value) {
-            this.import(value);
+            this.from(value);
         },
         owner: this
     });

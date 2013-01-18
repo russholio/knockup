@@ -14,7 +14,7 @@ ku.Event.prototype = {
             var stack = [];
 
             for (var i in this.stack) {
-                if (!this.stack[i] === cb) {
+                if (this.stack[i] !== cb) {
                     stack.push(this.stack[i]);
                 }
             }
