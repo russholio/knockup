@@ -20,7 +20,7 @@ module.exports = function(grunt) {
         min: {
             dist: {
                 src: 'dist/knockup.js',
-                dest: 'dest/knockup.min.js'
+                dest: 'dist/knockup.min.js'
             }
         },
         pkg: '<json:package.json>',
