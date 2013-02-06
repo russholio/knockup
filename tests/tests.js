@@ -1,4 +1,65 @@
-module('models');
+module('Attribute Bindings');
+
+test('Model', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-model', 'test.model');
+
+    var span = document.createElement('span');
+    span.setAttribute('data-bind', 'text: name');
+
+    div.appendChild(span);
+
+    ku.set('test.model', {
+        name: 'test'
+    });
+
+    ku.run(div);
+
+    ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+});
+
+asyncTest('Router', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-router', 'test.router');
+
+    var router = new ku.Router();
+    router.view.http.events.on('success', function() {
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+    router.set('index', function() {
+        return {
+            name: 'test'
+        };
+    });
+
+    ku.set('test.router', router);
+    ku.run(div);
+    ku.get('test.router').go('index');
+});
+
+asyncTest('View', function() {
+    var div = document.createElement('div');
+    div.setAttribute('data-ku-view', 'test.view');
+    div.setAttribute('data-ku-path', 'index');
+    div.setAttribute('data-ku-model', 'test.model');
+
+    ku.set('test.view', new ku.View());
+    ku.set('test.model', {
+        name: 'test'
+    });
+
+    ku.get('test.view').http.events.on('success', function() {
+        ok(div.childNodes[0].innerHTML === 'test', 'Inner text on div\'s child span should update.');
+        start();
+    });
+
+    ku.run(div);
+});
+
+
+
+module('Models and Collections');
 
 test('Defining', function() {
     var User = ku.model({
@@ -31,7 +92,7 @@ test('Relationships', function() {
 
     var User = ku.model({
         bestFriend: Friend,
-        friends: Friend.collection
+        friends: Friend.Collection
     });
 
     var user = new User().bestFriend({
@@ -41,7 +102,7 @@ test('Relationships', function() {
         { name: 'Lizard' }
     ]);
 
-    var exported = user.export();
+    var exported = user.raw();
 
     ok(exported.bestFriend.name === user.bestFriend().name(), 'Dog should be the best friend.');
     ok(exported.friends[0].name === user.friends().first().name(), 'Cat should be 2nd best.');
@@ -49,10 +110,6 @@ test('Relationships', function() {
 });
 
 test('Readers', function() {
-    var Friend = ku.model({
-        user: 0
-    });
-
     var User = ku.model({
         forename: '',
         surname: '',
@@ -62,7 +119,90 @@ test('Readers', function() {
     });
 
     var user     = new User().forename('Barbara').surname('Barberson');
-    var exported = user.export();
+    var exported = user.raw();
 
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
+});
+
+
+
+module('Views');
+
+test('No Model Binding', function() {
+    var view = new ku.View();
+    
+    view.target = document.createElement('div');
+    view.cache.test = 'test';
+
+    view.render('test');
+
+    ok(view.target.innerHTML === 'test', 'The view should render without a bound model.');
+});
+
+
+
+module('Http');
+
+asyncTest('Parsing Based on Request Header', function() {
+    var http = new ku.Http();
+
+    http.headers.Accept = 'application/json';
+
+    http.get('data/bob.json', function(r) {
+        ok(r.name === 'Bob Bobberson', 'JSON object should be properly parsed.');
+        start();
+    });
+});
+
+test('Overloading Data and Callback Parameters', function() {
+    var http = new ku.Http();
+
+    http.request = function(url, data, type, callback) {
+        callback({
+            url: url,
+            data: data,
+            type: type,
+            callback: callback
+        });
+    };
+
+    http['delete']('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http['delete']('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.get('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.get('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.head('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.head('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
+
+    http.options('test', function(r) {
+        ok(!r.data.arg);
+    });
+
+    http.options('test', {
+        arg: 'yes'
+    }, function(r) {
+        ok(r.data.arg === 'yes');
+    });
 });

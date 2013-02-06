@@ -1,0 +1,11 @@
+{
+    "name": "knockup",
+    "description": "MVC for Knockout.",
+    "version": "0.1.0",
+    "devDependencies": {
+        "grunt": "latest"
+    },
+    "scripts": {
+        "test": "grunt travis --verbose"
+    }
+}
