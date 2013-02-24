@@ -1073,7 +1073,7 @@
         },
 
         request: function(url, data, type, fn) {
-            var self    = this;
+            var self    = this,
                 request = this.createRequestObject();
 
             request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
