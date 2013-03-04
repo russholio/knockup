@@ -1,3 +1,5 @@
+var _undefined;
+
 module('Attribute Bindings');
 
 test('Model', function() {

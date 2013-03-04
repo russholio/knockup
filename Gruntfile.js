@@ -43,9 +43,11 @@ module.exports = function(grunt) {
         },
         uglify: {
             dist: {
-                'dist/knockup.min.js': [
-                    'dist/knockup.js'
-                ]
+                files: {
+                    'dist/knockup.min.js': [
+                        'dist/knockup.js'
+                    ]
+                }
             }
         },
         wrap: {

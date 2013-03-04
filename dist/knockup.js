@@ -66,7 +66,7 @@ ku.collection = function(model) {
     var Collection = function(data) {
         Array.prototype.push.apply(this, []);
 
-        this.observer = generateObserver.call(this);
+        this.observer = generateObserver(this);
         
         this.aggregate = function(joiner, fields) {
             var arr = [];
@@ -540,15 +540,15 @@ function each(items, fn) {
     }
 }
 
-function generateObserver() {
+function generateObserver(obj) {
     return ko.computed({
         read: function() {
-            return this;
+            return obj;
         },
         write: function(value) {
-            this.from(value);
+            obj.from(value);
         },
-        owner: this
+        owner: obj
     });
 }
 ku.prefix = 'data-ku-';
@@ -664,15 +664,9 @@ ku.isModel = function(fn) {
 ku.isCollection = function(fn) {
     return fnCompare(fn, ku.collection().toString());
 };
-ku.model = function(define) {
+ku.model = function(definition) {
     var Model = function(data) {
-        var computed   = {},
-            properties = {},
-            relations  = {},
-            methods    = {},
-            self       = this;
-
-        this.observer = generateObserver.call(this);
+        var that = this;
 
         this.from = function(obj) {
             if (ku.isModel(obj)) {
@@ -680,8 +674,8 @@ ku.model = function(define) {
             }
 
             each(obj, function(name, value) {
-                if (typeof self[name] === 'function') {
-                    self[name](value);
+                if (typeof that[name] === 'function') {
+                    that[name](value);
                 }
             });
 
@@ -693,93 +687,36 @@ ku.model = function(define) {
         this.raw = function() {
             var out = {};
 
-            each(properties, function(i, v) {
-                out[i] = self[i]();
+            each(that.$self.properties, function(i, v) {
+                out[i] = that[i]();
             });
 
-            each(computed, function(i, v) {
-                out[i] = self[i]();
+            each(that.$self.computed, function(i, v) {
+                out[i] = that[i]();
             });
 
-            each(relations, function(i, v) {
-                out[i] = self[i]().raw();
+            each(that.$self.relations, function(i, v) {
+                out[i] = that[i]().raw();
             });
 
             return out;
         };
 
         this.clone = function() {
-            var clone = new Model(this.raw());
-
+            var clone     = new Model(this.raw());
             clone.$parent = this.$parent;
-
             return clone;
         };
 
         this.reset = function() {
-            each(properties, function(i, v) {
-                self[i](v);
+            each(that.$self.properties, function(i, v) {
+                that[i](v);
             });
 
             return this;
         };
 
-        each(define, function(i, v) {
-            if (ku.isModel(v) || ku.isCollection(v)) {
-                var obj = new v();
-
-                self[i] = obj.observer;
-
-                obj.$parent = self;
-
-                relations[i] = v;
-
-                return;
-            }
-
-            if (typeof v === 'function') {
-                var name, type;
-
-                if (ku.isReader(i)) {
-                    name = ku.fromReader(i);
-                    type = 'read';
-                } else if (ku.isWriter(i)) {
-                    name = ku.fromWriter(i);
-                    type = 'write';
-                }
-
-                if (type) {
-                    if (typeof computed[name] === 'undefined') {
-                        computed[name] = {};
-                    }
-
-                    computed[name][type] = v;
-
-                    return;
-                }
-
-                self[i] = function() {
-                    return v.apply(self, arguments);
-                };
-
-                methods[i] = v;
-
-                return;
-            }
-
-            self[i] = ko.observable(v);
-
-            properties[i] = v;
-        });
-
-        each(computed, function(name, computed) {
-            computed.owner = self;
-
-            computed.deferEvaluation = true;
-
-            self[name] = ko.computed(computed);
-        });
-
+        define(this);
         this.from(data);
 
         if (typeof this.init === 'function') {
@@ -788,15 +725,36 @@ ku.model = function(define) {
     };
 
     Model.Collection      = ku.collection(Model);
-    Model.definition      = define;
+    Model.computed        = {};
+    Model.methods         = {};
+    Model.properties      = {};
+    Model.relations       = {};
     Model.prototype.$self = Model;
 
     Model.extend = function(OtherModel) {
         OtherModel = ku.isModel(OtherModel) ? OtherModel : ku.model(OtherModel);
-        
-        each(define, function(i, v) {
-            if (typeof OtherModel.definition[i] === 'undefined') {
-                OtherModel.definition[i] = v;
+
+        each(Model.computed, function(i, v) {
+            if (typeof OtherModel.computed[i] === 'undefined') {
+                OtherModel.computed[i] = v;
+            }
+        });
+
+        each(Model.methods, function(i, v) {
+            if (typeof OtherModel.computed[i] === 'undefined') {
+                OtherModel.computed[i] = v;
+            }
+        });
+
+        each(Model.properties, function(i, v) {
+            if (typeof OtherModel.computed[i] === 'undefined') {
+                OtherModel.computed[i] = v;
+            }
+        });
+
+        each(Model.relations, function(i, v) {
+            if (typeof OtherModel.computed[i] === 'undefined') {
+                OtherModel.computed[i] = v;
             }
         });
 
@@ -804,17 +762,90 @@ ku.model = function(define) {
     };
 
     Model.inherit = function(OtherModel) {
-        OtherModel = ku.isModel(OtherModel) ? OtherModel : ku.model(OtherModel);
-
-        each(OtherModel.definition, function(i, v) {
-            define[i] = v;
-        });
-
-        return Model;
+        return OtherModel.extend(Model);
     };
+
+    interpretDefinition(Model, definition);
 
     return Model;
 };
+
+function interpretDefinition(Model, definition) {
+    each(definition, function(i, v) {
+        if (ku.isModel(v) || ku.isCollection(v)) {
+            Model.relations[i] = v;
+            return;
+        }
+
+        if (typeof v === 'function') {
+            var name, type;
+
+            if (ku.isReader(i)) {
+                name = ku.fromReader(i);
+                type = 'read';
+            } else if (ku.isWriter(i)) {
+                name = ku.fromWriter(i);
+                type = 'write';
+            }
+
+            if (type) {
+                if (typeof Model.computed[name] === 'undefined') {
+                    Model.computed[name] = {};
+                }
+
+                Model.computed[name][type] = v;
+                return;
+            }
+
+            Model.methods[i] = v;
+            return;
+        }
+
+        Model.properties[i] = v;
+    });
+}
+
+function define(obj) {
+    obj.observer = generateObserver(obj);
+
+    defineComputed(obj);
+    defineMethods(obj);
+    defineProperties(obj);
+    defineRelations(obj);
+}
+
+function defineComputed(obj) {
+    each(obj.$self.computed, function(name, computed) {
+        obj[name] = ko.computed({
+            owner: obj,
+            deferEvaluation: true,
+            read: computed.read,
+            write: computed.write
+        });
+    });
+}
+
+function defineMethods(obj) {
+    each(obj.$self.methods, function(name, method) {
+        obj[name] = function() {
+            return method.apply(obj, arguments);
+        };
+    });
+}
+
+function defineProperties(obj) {
+    each(obj.$self.properties, function(name, property) {
+        obj[name] = ko.observable(property);
+    });
+}
+
+function defineRelations(obj) {
+    each(obj.$self.relations, function(name, relation) {
+        var instance     = new relation();
+        obj[name]        = instance.observer;
+        instance.$parent = obj;
+    });
+}
 var bound = [];
 
 ku.Router = function() {

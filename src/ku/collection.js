@@ -2,7 +2,7 @@ ku.collection = function(model) {
     var Collection = function(data) {
         Array.prototype.push.apply(this, []);
 
-        this.observer = generateObserver.call(this);
+        this.observer = generateObserver(this);
         
         this.aggregate = function(joiner, fields) {
             var arr = [];
