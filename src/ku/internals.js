@@ -36,14 +36,14 @@ function each(items, fn) {
     }
 }
 
-function generateObserver() {
+function generateObserver(obj) {
     return ko.computed({
         read: function() {
-            return this;
+            return obj;
         },
         write: function(value) {
-            this.from(value);
+            obj.from(value);
         },
-        owner: this
+        owner: obj
     });
 }
