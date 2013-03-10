@@ -75,20 +75,20 @@ ku.model = function(definition) {
         });
 
         each(Model.methods, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.methods[i] === 'undefined') {
+                OtherModel.methods[i] = v;
             }
         });
 
         each(Model.properties, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.properties[i] === 'undefined') {
+                OtherModel.properties[i] = v;
             }
         });
 
         each(Model.relations, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.relations[i] === 'undefined') {
+                OtherModel.relations[i] = v;
             }
         });
 
