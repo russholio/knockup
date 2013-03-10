@@ -1,7 +1,7 @@
 Knockup - MVC for Knockout
 ==========================
 
-[![Build Status](http://travis-ci.org/devco/knockup.png)](http://travis-ci.org/devco/knockup)
+[![Build Status](https://api.travis-ci.org/devco/knockup.png)](http://travis-ci.org/devco/knockup)
 
 Knockup builds on Knockout to give you a complete MVC solution for building RESTful JavaScript web applications. Its only dependency is Knockout, but is compatible with any CommonJS AMD library. There's no silly "Starter Kit", or chain of depenencies that you need to install. Just make sure you've got Knockout and Knockup, and you're ready to start coding.
 
