@@ -111,16 +111,21 @@ test('Relationships', function() {
     ok(exported.friends[1].name === user.friends().at(1).name(), 'Lizard should be 3rd best.');
 });
 
-test('Readers', function() {
+test('Computed Observables - Readers and Writers', function() {
     var User = ku.model({
         forename: '',
         surname: '',
         readName: function() {
             return this.forename() + ' ' + this.surname();
+        },
+        writeName: function(name) {
+            name = name.split(' ');
+            this.forename(name[0]).surname(name[1]);
+            return this;
         }
     });
 
-    var user     = new User().forename('Barbara').surname('Barberson');
+    var user     = new User().name('Barbara Barberson');
     var exported = user.raw();
 
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
