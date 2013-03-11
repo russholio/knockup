@@ -2,6 +2,12 @@ ku.model = function(definition) {
     var Model = function(data) {
         var that = this;
 
+        this.clone = function() {
+            var clone     = new Model(this.raw());
+            clone.$parent = this.$parent;
+            return clone;
+        };
+
         this.from = function(obj) {
             if (ku.isModel(obj)) {
                 obj = obj.raw();
@@ -36,12 +42,6 @@ ku.model = function(definition) {
             return out;
         };
 
-        this.clone = function() {
-            var clone     = new Model(this.raw());
-            clone.$parent = this.$parent;
-            return clone;
-        };
-
         this.reset = function() {
             each(that.$self.properties, function(i, v) {
                 that[i](v);
@@ -49,6 +49,10 @@ ku.model = function(definition) {
 
             return this;
         };
+
+        // alias deprecated methods
+        this['export'] = this.raw;
+        this['import'] = this.from;
 
         define(this);
         this.from(data);
@@ -169,7 +173,11 @@ function defineMethods(obj) {
 
 function defineProperties(obj) {
     each(obj.$self.properties, function(name, property) {
-        obj[name] = ko.observable(property);
+        if (typeof property === 'object' && typeof property.length === 'number') {
+            obj[name] = ko.observableArray(property);
+        } else {
+            obj[name] = ko.observable(property);
+        }
     });
 }
 

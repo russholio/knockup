@@ -65,10 +65,21 @@ module('Models and Collections');
 
 test('Defining', function() {
     var User = ku.model({
+        name: '',
+        addresses: [],
+        readComputed: function() {
+
+        }
+    });
+
+    var bob = new User({
         name: 'Bob Bobberson'
     });
 
     ok(ku.isModel(User), '`ku.model()` should return a valid model.');
+    ok(ko.isObservable(bob.name), 'The property should be an observable.');
+    ok(typeof bob.addresses.push === 'function', 'The property should be an observable array.');
+    ok(ko.isComputed(bob.computed), 'The property should be a computed observable.');
 });
 
 test('Instantiating', function() {

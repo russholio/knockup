@@ -178,6 +178,10 @@ ku.collection = function(model) {
             return this.find(query, 1).first();
         };
 
+        // alias deprecated methods
+        this['export'] = this.raw;
+        this['import'] = this.from;
+
         this.from(data);
     };
 
