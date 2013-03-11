@@ -741,20 +741,20 @@ ku.model = function(definition) {
         });
 
         each(Model.methods, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.methods[i] === 'undefined') {
+                OtherModel.methods[i] = v;
             }
         });
 
         each(Model.properties, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.properties[i] === 'undefined') {
+                OtherModel.properties[i] = v;
             }
         });
 
         each(Model.relations, function(i, v) {
-            if (typeof OtherModel.computed[i] === 'undefined') {
-                OtherModel.computed[i] = v;
+            if (typeof OtherModel.relations[i] === 'undefined') {
+                OtherModel.relations[i] = v;
             }
         });
 
@@ -835,7 +835,11 @@ function defineMethods(obj) {
 
 function defineProperties(obj) {
     each(obj.$self.properties, function(name, property) {
-        obj[name] = ko.observable(property);
+        if (typeof property === 'object' && typeof property.length === 'number') {
+            obj[name] = ko.observableArray(property);
+        } else {
+            obj[name] = ko.observable(property);
+        }
     });
 }
 
@@ -846,6 +850,7 @@ function defineRelations(obj) {
         instance.$parent = obj;
     });
 }
+
 var bound = [];
 
 ku.Router = function() {

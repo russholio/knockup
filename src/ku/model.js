@@ -169,7 +169,11 @@ function defineMethods(obj) {
 
 function defineProperties(obj) {
     each(obj.$self.properties, function(name, property) {
-        obj[name] = ko.observable(property);
+        if (typeof property === 'object' && typeof property.length === 'number') {
+            obj[name] = ko.observableArray(property);
+        } else {
+            obj[name] = ko.observable(property);
+        }
     });
 }
 
