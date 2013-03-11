@@ -122,6 +122,58 @@ test('Relationships', function() {
     ok(exported.friends[1].name === user.friends().at(1).name(), 'Lizard should be 3rd best.');
 });
 
+test('Collection Manipulation', function() {
+    var Item = ku.model({
+        name: ''
+    });
+
+    var Items = ku.model({
+        items: Item.Collection
+    });
+
+    var model = new Items;
+
+    model.items([{
+        name: 'test1',
+    }, {
+        name: 'test2'
+    }]);
+
+    ok(model.items().length === 2, 'Items not set.');
+
+    model.items([{
+        name: 'test1',
+    }, {
+        name: 'test2'
+    }]);
+
+    ok(model.items().length === 2, 'Items should be replaced when directly set.');
+});
+
+test('Observable Arrays', function() {
+    var list  = document.createElement('ul');
+    var item  = document.createElement('li');
+    var model = ku.model({
+        items: []
+    });
+
+    list.setAttribute('data-ku-model', 'model');
+    list.setAttribute('data-bind', 'foreach: items');
+    item.setAttribute('data-bind', 'text: $data');
+    list.appendChild(item);
+    ku.set('model', new model);
+    ku.run(list);
+
+    ok(ku.get('model').items.length === list.childNodes.length, 'No items should be present.');
+
+    ku.get('model').items([
+        'test1',
+        'test2'
+    ]);
+
+    ok(ku.get('model').items.length === list.childNodes.length, 'Changes in view model not present.');
+});
+
 test('Computed Observables - Readers and Writers', function() {
     var User = ku.model({
         forename: '',
