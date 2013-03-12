@@ -67,7 +67,7 @@ ku.collection = function(model) {
         Array.prototype.push.apply(this, []);
 
         this.observer = generateObserver(this);
-        
+
         this.aggregate = function(joiner, fields) {
             var arr = [];
 
@@ -75,7 +75,7 @@ ku.collection = function(model) {
                 fields = [joiner];
                 joiner = '';
             }
-            
+
             this.each(function(k, model) {
                 var parts = [];
 
@@ -87,7 +87,7 @@ ku.collection = function(model) {
 
                 arr.push(parts.join(joiner));
             });
-            
+
             return arr;
         };
 
@@ -122,7 +122,7 @@ ku.collection = function(model) {
         this.empty = function() {
             Array.prototype.splice.call(this, 0, this.length);
             this.observer.notifySubscribers();
-            
+
             return this;
         };
 
@@ -203,8 +203,7 @@ ku.collection = function(model) {
         };
 
         this.find = function(query, limit, page) {
-            var collection = new this.$self.Model.Collection();
-
+            var collection     = new this.$self.Model.Collection();
             collection.$parent = this.$parent;
 
             if (ku.isModel(query)) {
@@ -232,12 +231,12 @@ ku.collection = function(model) {
             this.each(function(i, model) {
                 if (limit && page) {
                     var offset = (limit * page) - limit;
-                    
+
                     if (offset < i) {
                         return;
                     }
                 }
-                
+
                 if (query.call(model, i)) {
                     collection.append(model);
                 }

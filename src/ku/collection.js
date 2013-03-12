@@ -71,8 +71,8 @@ ku.collection = function(model) {
         };
 
         this.insert = function(at, item) {
-            item        = ku.isModel(item) ? item : new model(item);
-            item.$owner = this.$owner;
+            item         = ku.isModel(item) ? item : new model(item);
+            item.$parent = this.$parent;
 
             Array.prototype.splice.call(this, at, 0, item);
             this.observer.notifySubscribers();
@@ -81,8 +81,8 @@ ku.collection = function(model) {
         };
 
         this.replace = function (at, item) {
-            item        = ku.isModel(item) ? item : new model(item);
-            item.$owner = this.$owner;
+            item         = ku.isModel(item) ? item : new model(item);
+            item.$parent = this.$parent;
 
             Array.prototype.splice.call(this, at, 1, item);
             this.observer.notifySubscribers();
@@ -139,8 +139,8 @@ ku.collection = function(model) {
         };
 
         this.find = function(query, limit, page) {
-            var collection    = new this.$self.Model.Collection();
-            collection.$owner = this.$owner;
+            var collection     = new this.$self.Model.Collection();
+            collection.$parent = this.$parent;
 
             if (ku.isModel(query)) {
                 query = query.raw();
