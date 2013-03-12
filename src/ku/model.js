@@ -3,8 +3,8 @@ ku.model = function(definition) {
         var that = this;
 
         this.clone = function() {
-            var clone     = new Model(this.raw());
-            clone.$parent = this.$parent;
+            var clone    = new Model(this.raw());
+            clone.$owner = this.$owner;
             return clone;
         };
 
@@ -183,8 +183,8 @@ function defineProperties(obj) {
 
 function defineRelations(obj) {
     each(obj.$self.relations, function(name, relation) {
-        var instance     = new relation();
-        obj[name]        = instance.observer;
-        instance.$parent = obj;
+        var instance    = new relation();
+        obj[name]       = instance.observer;
+        instance.$owner = obj;
     });
 }
