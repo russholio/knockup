@@ -194,13 +194,40 @@ test('Computed Observables - Readers and Writers', function() {
     ok(exported.name === user.name(), 'The `name` reader should have been exported.');
 });
 
+test('Ownership Binding', function() {
+    var NoParentModel = ku.model({
+        name: ''
+    });
+
+    var ChildModel = ku.model({
+        name: ''
+    });
+
+    var ParentModel = ku.model({
+        child: ChildModel,
+        children: ChildModel.Collection
+    });
+
+    var owner = new ParentModel({
+        child: {
+            name: 'test'
+        },
+        children: [{
+            name: 'test'
+        }]
+    });
+
+    ok(owner.child().$parent instanceof ParentModel, 'The child model\'s $parent should be an instanceof ParentModel.');
+    ok(owner.children().at(0).$parent instanceof ParentModel, 'The children collection\'s $parent should be an instanceof ParentModel.');
+});
+
 
 
 module('Views');
 
 test('No Model Binding', function() {
     var view = new ku.View();
-    
+
     view.target = document.createElement('div');
     view.cache.test = 'test';
 
