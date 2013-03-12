@@ -135,12 +135,20 @@ ku.collection = function(model) {
         };
 
         this.insert = function(at, item) {
-            item = ku.isModel(item) ? item : new model(item);
-
+            item         = ku.isModel(item) ? item : new model(item);
             item.$parent = this.$parent;
 
             Array.prototype.splice.call(this, at, 0, item);
+            this.observer.notifySubscribers();
 
+            return this;
+        };
+
+        this.replace = function (at, item) {
+            item         = ku.isModel(item) ? item : new model(item);
+            item.$parent = this.$parent;
+
+            Array.prototype.splice.call(this, at, 1, item);
             this.observer.notifySubscribers();
 
             return this;
@@ -167,7 +175,11 @@ ku.collection = function(model) {
             }
 
             each(data, function(i, model) {
-                that.append(model);
+                if (that.has(i)) {
+                    that.replace(i, model);
+                } else {
+                    that.replace(i, model);
+                }
             });
 
             return this;
@@ -241,6 +253,10 @@ ku.collection = function(model) {
         this.findOne = function(query) {
             return this.find(query, 1).first();
         };
+
+        // alias deprecated methods
+        this['export'] = this.raw;
+        this['import'] = this.from;
 
         this.from(data);
     };
