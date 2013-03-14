@@ -854,7 +854,7 @@ function defineMethods(obj) {
 
 function defineProperties(obj) {
     each(obj.$self.properties, function(name, property) {
-        if (typeof property === 'object' && typeof property.length === 'number') {
+        if (Object.prototype.toString.call(property) === '[object Array]') {
             obj[name] = ko.observableArray(property);
         } else {
             obj[name] = ko.observable(property);
@@ -869,7 +869,6 @@ function defineRelations(obj) {
         instance.$parent = obj;
     });
 }
-
 var bound = [];
 
 ku.Router = function() {
