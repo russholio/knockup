@@ -1219,12 +1219,12 @@ ku.View.prototype = {
     target: null,
 
     idPrefix: 'ku-view-',
-    
+
     idSuffix: '',
 
     render: function(name, model) {
         var self = this,
-            id   = this.idPrefix + name + this.idSuffix;
+            id   = this.idPrefix + name.replace('/', '-') + this.idSuffix;
 
         if (this.cache[name]) {
             this.renderer(this.cache[name], model);
