@@ -17,9 +17,11 @@ ku.View.prototype = {
 
     idSuffix: '',
 
+    idSeparator: '-',
+
     render: function(name, model) {
         var self = this,
-            id   = this.idPrefix + name.replace('/', '-') + this.idSuffix;
+            id   = this.idPrefix + name.replace(/\//g, this.idSeparator) + this.idSuffix;
 
         if (this.cache[name]) {
             this.renderer(this.cache[name], model);
