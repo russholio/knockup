@@ -379,7 +379,7 @@ ku.Http.prototype = {
     prefix: '',
 
     suffix: '',
-    
+
     headers: {},
 
     parsers: {
@@ -425,7 +425,6 @@ ku.Http.prototype = {
             request = this.createRequestObject();
 
         request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
-        request.setRequestHeader('Accept', this.accept);
 
         for (var header in this.headers) {
             request.setRequestHeader(header, this.headers[header]);
@@ -1222,9 +1221,11 @@ ku.View.prototype = {
 
     idSuffix: '',
 
+    idSeparator: '-',
+
     render: function(name, model) {
         var self = this,
-            id   = this.idPrefix + name.replace('/', '-') + this.idSuffix;
+            id   = this.idPrefix + name.replace(/\//g, this.idSeparator) + this.idSuffix;
 
         if (this.cache[name]) {
             this.renderer(this.cache[name], model);

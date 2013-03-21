@@ -7,7 +7,7 @@ ku.Http.prototype = {
     prefix: '',
 
     suffix: '',
-    
+
     headers: {},
 
     parsers: {
@@ -53,7 +53,6 @@ ku.Http.prototype = {
             request = this.createRequestObject();
 
         request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
-        request.setRequestHeader('Accept', this.accept);
 
         for (var header in this.headers) {
             request.setRequestHeader(header, this.headers[header]);
