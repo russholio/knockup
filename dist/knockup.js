@@ -437,7 +437,7 @@ ku.Http.prototype = {
             data = this.serialize(data);
         }
 
-        if (data && type.toLowerCase() == 'get') {
+        if (data && type.toLowerCase() === 'get') {
             queryString = '?' + data;
             data = undefined;
         }
