@@ -421,10 +421,28 @@ ku.Http.prototype = {
     },
 
     request: function(url, data, type, fn) {
-        var self    = this,
-            request = this.createRequestObject();
+        var self        = this,
+            request     = this.createRequestObject(),
+            queryString = '';
 
-        request.open(type.toUpperCase(), this.prefix + url + this.suffix, true);
+        if (typeof data === 'function') {
+            data = undefined;
+        }
+
+        if (ku.isModel(data)) {
+            data = data.raw();
+        }
+
+        if (typeof data === 'object') {
+            data = this.serialize(data);
+        }
+
+        if (data && type.toLowerCase() === 'get') {
+            queryString = '?' + data;
+            data = undefined;
+        }
+
+        request.open(type.toUpperCase(), this.prefix + url + this.suffix + queryString, true);
 
         for (var header in this.headers) {
             request.setRequestHeader(header, this.headers[header]);
@@ -460,14 +478,6 @@ ku.Http.prototype = {
 
         if (request.readyState === 4) {
             return;
-        }
-
-        if (ku.isModel(data)) {
-            data = data.raw();
-        }
-
-        if (typeof data === 'object') {
-            data = this.serialize(data);
         }
 
         if (data) {
