@@ -221,6 +221,43 @@ test('Ownership Binding', function() {
     ok(owner.children().at(0).$parent instanceof ParentModel, 'The children collection\'s $parent should be an instanceof ParentModel.');
 });
 
+test('Resetting Properties - Values, Models and Collections', function() {
+    var CheeseModel = ku.model({
+        name:        'Mozzarella',
+        consistency: 'Stringy'
+    });
+
+    var MeatModel = ku.model({
+        name: 'Bacon',
+        cut:  'Rasher'
+    });
+
+    var PizzaModel = ku.model({
+        meats: MeatModel.Collection,
+        slices: 8,
+        cheese: CheeseModel
+    });
+
+    var pizza = new PizzaModel;
+    pizza.slices(12);
+    pizza.meats().append(new MeatModel);
+    pizza.meats().append(new MeatModel({
+        'name': 'Beef',
+        'cut': 'Ground'
+    }));
+    pizza.cheese().name('Gouda');
+
+    ok(pizza.slices() === 12, 'There should now be 12 slices in the pizza model (found: '+ pizza.slices() +').');
+    ok(pizza.meats().length === 2, 'There should be 2 different meats on the pizza (found: '+ pizza.meats().length +').');
+    ok(pizza.cheese().name() === 'Gouda', 'The pizza should have Gouda cheese (found: '+ pizza.cheese().name() +').');
+
+    pizza.reset();
+
+    ok(pizza.slices() === 8, 'The pizza should have 8 slices again (found: '+ pizza.slices() +').');
+    ok(pizza.meats().length === 0, 'There should be no meats on the pizza (found: '+ pizza.meats().length +').');
+    ok(pizza.cheese().name() === 'Mozzarella', 'The pizza should have Mozzarella cheese again (found: '+ pizza.cheese().name() +').');
+});
+
 
 
 module('Views');

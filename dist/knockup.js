@@ -737,6 +737,14 @@ ku.model = function(definition) {
                 that[i](v);
             });
 
+            each(that.$self.relations, function(i, v) {
+                if (ku.isCollection(v)) {
+                    that[i]().empty();
+                } else {
+                    that[i]().reset();
+                }
+            });
+
             return this;
         };
 
