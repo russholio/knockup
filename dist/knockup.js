@@ -700,7 +700,13 @@ ku.model = function(definition) {
 
         this.from = function(obj) {
             if (ku.isModel(obj)) {
-                obj = obj.raw();
+                var data = obj.raw();
+
+                each(obj.$self.computed, function(name) {
+                    delete data[name];
+                });
+
+                obj = data;
             }
 
             each(obj, function(name, value) {
